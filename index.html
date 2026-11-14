@@ -232,6 +232,19 @@ table.ledger .note-in{
 /* ---------- settings ---------- */
 .setrow{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:14px; transition:background-color .45s ease;}
 .hint{font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
+/* ---------- budget explainer + first-run tour ---------- */
+.whyrow{text-align:right; margin-top:2px;}
+.whylink{background:none; border:none; padding:2px 0; font-size:12.5px; color:var(--green); text-decoration:underline; cursor:pointer; font-family:inherit;}
+.whybox{background:var(--chip-bg); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.6; color:var(--ink-soft); margin-top:6px;}
+.tour-overlay{position:fixed; inset:0; background:rgba(20,16,10,.55); z-index:90;}
+.tour-ring{position:fixed; display:none; border:2.5px solid #fff; border-radius:50%; box-shadow:0 0 0 4px rgba(255,255,255,.22); animation:tourPulse 1.3s ease-out infinite; pointer-events:none;}
+.tour-ring.rect{border-radius:14px;}
+.tour-tip{position:fixed; left:20px; right:20px; top:110px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:16px; animation:fadeUp .3s ease both;}
+.tour-tip:before{content:''; position:absolute; left:36px; top:-8px; width:14px; height:14px; background:var(--card); border-left:1px solid var(--line); border-top:1px solid var(--line); transform:rotate(45deg);}
+.tour-txt{font-size:16px; font-weight:700; color:var(--ink); line-height:1.45;}
+.tour-btns{display:flex; gap:10px; margin-top:14px;}
+.tour-btns .btn{flex:1; text-align:center;}
+@keyframes tourPulse{0%{box-shadow:0 0 0 4px rgba(255,255,255,.35);}100%{box-shadow:0 0 0 16px rgba(255,255,255,0);}}
 .setrow h3{margin:0 0 10px; font-size:15px; color:var(--green-ink);}
 .seg{display:flex; gap:8px;}
 .seg .btn.on{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
@@ -277,7 +290,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.4';
+var APP_VERSION = '1.0.5';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -339,7 +352,7 @@ var I18N = {
   my: {
     subtitle:'နေ့စဉ် သုံးငွေ မှတ်တမ်း', remaining:'ကျန်ငွေ', kyat:'ကျပ်',
     spentThisMonth:'ဒီလ သုံးပြီး', incomeThisMonth:'ဒီလ ဝင်ငွေ',
-    monthBudget:'ဒီလ သုံးငွေ', dailyAvg:'တနေ့ ပျမ်းမျှ', daysLeft:'လစာထုတ်ဖို့ လိုသည့်ရက်',
+    monthBudget:'ဒီလ သုံးငွေ', dailyAvg:'တရက်ပျှမ်းမျှ သုံးငွေ', daysLeft:'လစာထုတ်ဖို့ လိုသည့်ရက်',
     days:'ရက်', categories:'အမျိုးအစား', last7days:'နောက် ၇ ရက်', recent:'လတ်တလော',
     noActivity:'မှတ်တမ်း မရှိသေးပါ', noExpenseYet:'ဒီလ အသုံးစရိတ် မရှိသေးပါ',
     dayTotal:'တနေ့တာ စုစုပေါင်း', dayIncome:'တနေ့တာ ဝင်ငွေ', remainingAfter:'လက်ကျန်',
@@ -360,6 +373,10 @@ var I18N = {
     monthTotal:'စုစုပေါင်း', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
     paydayRange:'လစာထုတ်ရက်က 1 ကနေ 31 အထိပဲ ရှိပါတယ်',
     profileHint:'မိမိ name နှင့် Profile ပြောင်းရန် username နှင့် profile ပုံကို နှိပ်ပြီး ပြောင်းလဲနိုင်ပါတယ်',
+    budgetWhy:'အကြောင်းအရာ',
+    budgetWhyText:'တရက်ပျှမ်းမျှ {t} လို့ သတ်မှတ်ထားတာကြောင့်၊ ဒီလ ရက် {d} ရက် × {t} = {b} ဖြစ်ပါတယ်။ ဒီလကုန်အထိ သုံးနိုင်တဲ့ စုစုပေါင်းပါ။',
+    tourPhoto:'Profile ပုံ ပြောင်းမလား?', tourName:'Username ပြောင်းမလား?',
+    tourNow:'အခုလုပ်မယ်', tourLater:'နောက်မှ',
     reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
     resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
     overBudget:'သတ်မှတ်ထားတာထက် {x} ကျပ် ပိုသုံးထားသည်။',
@@ -371,7 +388,7 @@ var I18N = {
   en: {
     subtitle:'Daily spending tracker', remaining:'Balance', kyat:'MMK',
     spentThisMonth:'Spent this month', incomeThisMonth:'Income this month',
-    monthBudget:'This month', dailyAvg:'Daily average', daysLeft:'Days until payday',
+    monthBudget:'This month', dailyAvg:'Average daily spending', daysLeft:'Days until payday',
     days:'days', categories:'Categories', last7days:'Last 7 days', recent:'Recent',
     noActivity:'No entries yet', noExpenseYet:'No spending this month yet',
     dayTotal:'Day total', dayIncome:'Day income', remainingAfter:'Balance',
@@ -392,6 +409,10 @@ var I18N = {
     monthTotal:'Total', monthDays:'{m} has only {x} days',
     paydayRange:'Payday must be between 1 and 31',
     profileHint:'To change your name and profile photo, tap the username and profile photo above.',
+    budgetWhy:'Why?',
+    budgetWhyText:'Your daily average is set to {t}, so {d} days this month × {t} = {b}. That is your total budget until the end of this month.',
+    tourPhoto:'Change your profile photo?', tourName:'Change your username?',
+    tourNow:'Do it now', tourLater:'Later',
     reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
     resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
     overBudget:'{x} MMK over the monthly budget.',
@@ -544,7 +565,7 @@ function defaultState(){
   return {
     setup: { done:false, balance:0, paydayDay:1, dailyTarget:0 },
     days: {},
-    settings: { theme:'light', lang:'my' },
+    settings: { theme:'light', lang:'my', tourDone:false },
     profile: { name:'', photo:'' }
   };
 }
@@ -565,6 +586,7 @@ function loadState(){
     if (s.settings && typeof s.settings === 'object'){
       if (s.settings.theme === 'dark' || s.settings.theme === 'light') state.settings.theme = s.settings.theme;
       if (s.settings.lang === 'my' || s.settings.lang === 'en') state.settings.lang = s.settings.lang;
+      if (s.settings.tourDone === true) state.settings.tourDone = true;
     }
     if (s.profile && typeof s.profile === 'object'){
       if (!state.profile) state.profile = { name:'', photo:'' };
@@ -729,6 +751,7 @@ function importState(text){
   if (s.settings && typeof s.settings === 'object'){
     if (s.settings.theme === 'dark' || s.settings.theme === 'light') next.settings.theme = s.settings.theme;
     if (s.settings.lang === 'my' || s.settings.lang === 'en') next.settings.lang = s.settings.lang;
+    if (s.settings.tourDone === true) next.settings.tourDone = true;
   }
   if (s.profile && typeof s.profile === 'object'){
     if (typeof s.profile.name === 'string') next.profile.name = s.profile.name.slice(0, 24);
@@ -760,6 +783,13 @@ var nameDraft = '';
 /* Day dirty flag: set on any change to the current day, cleared by Save
    or by navigating away. Drives the Save button on the day view. */
 var dayDirty = false;
+/* First-run tour: coach marks that point at the profile photo, then the
+   username, on the new user's first visit to the home screen. tourStep is
+   null when the tour is not showing, 0 for the photo step, 1 for the name
+   step. settings.tourDone persists, so the tour only ever runs once. */
+var tourStep = null;
+/* Budget explainer: whether the "why is the total this?" box is open. */
+var budgetWhyOpen = false;
 function profileName(){ return (state.profile && state.profile.name) ? state.profile.name : 'username'; }
 function profilePhoto(){ return (state.profile && state.profile.photo) ? state.profile.photo : ''; }
 
@@ -852,6 +882,43 @@ function headerHTML(){
     '</div>' +
     '<input type="file" id="photoInput" accept="image/*" style="display:none"></header>';
 }
+/* ---------------- first-run tour ---------------- */
+function tourHTML(){
+  if (tourStep === null) return '';
+  var isPhoto = tourStep === 0;
+  return '<div class="tour-overlay" id="tourOverlay">' +
+    '<div class="tour-ring' + (isPhoto ? '' : ' rect') + '" id="tourRing"></div>' +
+    '<div class="tour-tip" id="tourTip"><div class="tour-txt">' + esc(t(isPhoto ? 'tourPhoto' : 'tourName')) + '</div>' +
+    '<div class="tour-btns"><button type="button" class="btn primary" data-action="tour-now">' + esc(t('tourNow')) + '</button>' +
+    '<button type="button" class="btn ghost" data-action="tour-later">' + esc(t('tourLater')) + '</button></div>' +
+    '</div></div>';
+}
+/* Moves the highlight ring onto the header button the current step points
+   at, and drops the tip card just below it. Falls back to a fixed tip
+   position when the target cannot be measured (e.g. the Node test stub). */
+function positionTour(){
+  if (tourStep === null) return;
+  var ring = el('tourRing'), tip = el('tourTip');
+  if (!ring || !tip) return;
+  var sel = tourStep === 0 ? '[data-action="pick-photo"]' : '[data-action="edit-name"]';
+  var target = (typeof document !== 'undefined' && document.querySelector) ? document.querySelector(sel) : null;
+  var rect = (target && target.getBoundingClientRect) ? target.getBoundingClientRect() : null;
+  if (!rect){ ring.style.display = 'none'; tip.style.top = '110px'; return; }
+  var pad = 6;
+  ring.style.display = 'block';
+  ring.style.left = (rect.left - pad) + 'px';
+  ring.style.top = (rect.top - pad) + 'px';
+  ring.style.width = (rect.width + pad * 2) + 'px';
+  ring.style.height = (rect.height + pad * 2) + 'px';
+  tip.style.top = (rect.bottom + pad + 14) + 'px';
+}
+function endTour(){
+  tourStep = null;
+  if (!state.settings) state.settings = {};
+  state.settings.tourDone = true;
+  persist();
+  render();
+}
 function searchHTML(){
   var sugg = '';
   if (searchOpen && searchText.trim()){
@@ -930,6 +997,14 @@ function balanceHTML(){
     '<button type="button" class="eye" data-action="toggle-balance">' + icon('eyeOff') + '</button></div>' +
     '</div></div>';
 }
+/* Explains the monthly budget total with the live numbers, e.g.
+   daily target 20,000 x 30 days in November = 600,000. */
+function budgetWhyText(key, budget){
+  var p = key.split('-');
+  var d = daysInMonth(+p[0], +p[1]);
+  var tg = Number(state.setup.dailyTarget) || 0;
+  return t('budgetWhyText').split('{t}').join(fmt(tg)).split('{d}').join(String(d)).split('{b}').join(fmt(budget));
+}
 function budgetHTML(){
   var key = monthKeyOf(todayISO());
   var mt = monthTotals(key);
@@ -945,6 +1020,8 @@ function budgetHTML(){
     h += '<div class="budgetbar"><div class="fill' + (mt.expenses > budget ? ' over' : '') + '" style="width:' + pct + '%"></div></div>' +
       '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b><span data-countup="' + mt.expenses + '">' + fmt(mt.expenses) + '</span></b></span>' +
       '<span>' + esc(t('monthTotal')) + ': <b>' + fmt(budget) + '</b> ' + esc(t('kyat')) + '</span></div>';
+    h += '<div class="whyrow"><button type="button" class="whylink" data-action="toggle-budget-why">' + esc(t('budgetWhy')) + '</button></div>';
+    if (budgetWhyOpen) h += '<div class="whybox">' + esc(budgetWhyText(key, budget)) + '</div>';
   } else {
     h += '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b>' + fmt(mt.expenses) + '</b></span>' +
       '<span>' + esc(t('incomeThisMonth')) + ': <b>' + fmt(mt.income) + '</b></span></div>';
@@ -1108,13 +1185,17 @@ function render(){
   var cr0 = el('chipRow');
   if (cr0 && typeof cr0.scrollLeft === 'number') chipScroll = cr0.scrollLeft;
   var key = view.name + '|' + (view.iso || '');
+  /* First-run tour: start it the first time a finished setup lands on home. */
+  if (view.name === 'home' && state.setup.done && !(state.settings && state.settings.tourDone) && tourStep === null) tourStep = 0;
   var html;
   if (!state.setup.done) html = setupViewHTML();
   else if (view.name === 'home') html = homeViewHTML();
   else if (view.name === 'settings') html = settingsViewHTML();
   else html = dayViewHTML();
   html += tabbarHTML();
+  if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
   root.innerHTML = html;
+  positionTour();
   var cr1 = el('chipRow');
   if (cr1 && typeof cr1.scrollLeft === 'number') cr1.scrollLeft = chipScroll;
   if (editingName){
@@ -1264,6 +1345,31 @@ function handleClick(e){
       if (pi && pi.click) pi.click();
       break;
     }
+    case 'toggle-budget-why':
+      budgetWhyOpen = !budgetWhyOpen;
+      render();
+      break;
+    case 'tour-now': {
+      if (tourStep === 0){
+        tourStep = 1;
+        render();
+        var pi2 = el('photoInput');
+        if (pi2 && pi2.click) pi2.click();
+      } else {
+        tourStep = null;
+        if (!state.settings) state.settings = {};
+        state.settings.tourDone = true;
+        persist();
+        editingName = true;
+        nameDraft = (state.profile && state.profile.name) || '';
+        render();
+      }
+      break;
+    }
+    case 'tour-later':
+      if (tourStep === 0){ tourStep = 1; render(); }
+      else endTour();
+      break;
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
       persist(); render(); swapView(); break;
@@ -1334,6 +1440,8 @@ function handleClick(e){
         setupDraft = null;
         dayDirty = false;
         editingName = false;
+        tourStep = null;
+        budgetWhyOpen = false;
         persist();
         view = { name:'setup', iso: clampISO(todayISO()) };
         showToast(t('resetDone'));
@@ -1553,6 +1661,10 @@ if (typeof module !== 'undefined' && module.exports){
     profileName: profileName, profilePhoto: profilePhoto,
     get dayDirty(){ return dayDirty; },
     get editingName(){ return editingName; },
+    get tourStep(){ return tourStep; },
+    setTourStep: function(s){ tourStep = s; },
+    get budgetWhyOpen(){ return budgetWhyOpen; },
+    budgetWhyText: budgetWhyText, tourHTML: tourHTML, positionTour: positionTour,
     hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
     swapView: swapView,
     formatDateLong: formatDateLong, formatDateShort: formatDateShort, monthLabel: monthLabel, daysInMonth: daysInMonth,
