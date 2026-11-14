@@ -48,7 +48,11 @@ body{
   font-family:'Noto Sans Myanmar','Noto Sans',sans-serif;
   font-size:16px; line-height:1.55;
   transition:background-color .45s ease, color .45s ease;
+  /* App-like feel: no text selection or long-press callout on any text.
+     Form fields re-enable selection below, so typing/paste still work. */
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
 }
+input, textarea{ -webkit-user-select:text; user-select:text; }
 #app{max-width:560px; margin:0 auto; padding:14px 16px 110px;}
 @keyframes viewEnter{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
 .view-enter{animation:viewEnter .35s ease both;}
@@ -303,7 +307,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.8';
+var APP_VERSION = '1.0.9';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -1738,6 +1742,13 @@ function init(){
     document.addEventListener('input', handleInput);
     document.addEventListener('change', handleChange);
     document.addEventListener('keydown', handleKeyDown);
+    /* Long-press must not open a menu (Copy / image actions) anywhere
+       except inside form fields, where paste must still work. */
+    document.addEventListener('contextmenu', function(e){
+      var tg = e.target;
+      if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
+      e.preventDefault();
+    });
     if (typeof window !== 'undefined') window.addEventListener('hashchange', onHashChange);
   }
   if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator &&
