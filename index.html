@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Sir Khant Finance</title>
+<meta name="description" content="နေ့စဉ် သုံးငွေ မှတ်တမ်း — Daily spending tracker for Myanmar.">
+<meta name="theme-color" content="#f7f3ea">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sir Khant Finance">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+@font-face{
+  font-family:'Noto Sans Myanmar';
+  src:url('fonts/NotoSansMyanmar-Regular.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'Noto Sans Myanmar';
+  src:url('fonts/NotoSansMyanmar-Bold.ttf') format('truetype');
+  font-weight:700; font-style:normal; font-display:swap;
+}
+:root{
+  --paper:#f7f3ea; --card:#fffdf6; --ink:#26221a; --ink-soft:#6b6353;
+  --line:#e5ddc9; --line-strong:#c9bfa4; --green:#1f4d2e; --green-soft:#e6ecdf;
+  --green-ink:#173a22; --green-fill:#2e7d4f; --warn:#8a5a1d; --warn-bg:#f6ecd8;
+  --danger:#9a3226; --input-bg:#ffffff; --chip-bg:#f1ebdb;
+  --shadow:0 1px 3px rgba(38,34,26,.07), 0 4px 14px rgba(38,34,26,.05);
+  --shadow-lg:0 2px 6px rgba(38,34,26,.08), 0 10px 28px rgba(38,34,26,.09);
+  --radius:14px;
+}
+[data-theme="dark"]{
+  --paper:#1d1a15; --card:#27221a; --ink:#ece5d3; --ink-soft:#b3ab95;
+  --line:#3d372a; --line-strong:#5d5542; --green:#6fae7e; --green-soft:#26351f;
+  --green-ink:#cfe3cf; --green-fill:#5da271; --warn:#d9a55c; --warn-bg:#3a2f1c;
+  --danger:#e08a7a; --input-bg:#1d1a15; --chip-bg:#332d21;
+  --shadow:0 1px 3px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans Myanmar','Noto Sans',sans-serif;
+  font-size:16px; line-height:1.55;
+}
+#app{max-width:560px; margin:0 auto; padding:14px 16px 110px;}
+@keyframes viewEnter{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+.view-enter{animation:viewEnter .35s ease both;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+.fade-up{animation:fadeUp .4s ease both;}
+button{font-family:inherit; cursor:pointer; transition:transform .12s ease, background .15s ease, border-color .15s ease;}
+button:active{transform:scale(.96);}
+.btn{
+  border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
+  border-radius:10px; padding:9px 14px; font-size:14.5px; line-height:1.3; box-shadow:var(--shadow);
+}
+.btn svg{width:17px; height:17px; vertical-align:-3px;}
+.btn.primary{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
+[data-theme="dark"] .btn.primary{color:#14210f;}
+.btn.primary.big{width:100%; padding:14px; font-size:17px; border-radius:12px;}
+.btn.danger{color:var(--danger); border-color:var(--danger);}
+.btn.ghost{border-color:transparent; background:transparent; box-shadow:none; color:var(--green-ink);}
+.btn.small{padding:6px 10px; font-size:13px;}
+.iconbtn{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
+  background:var(--card); color:var(--ink-soft); display:inline-flex;
+  align-items:center; justify-content:center; box-shadow:var(--shadow); flex-shrink:0;
+}
+.iconbtn svg{width:20px; height:20px;}
+.iconbtn.on{color:var(--green-ink); border-color:var(--green);}
+/* ---------- header (user profile) ---------- */
+header.top{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:4px 0 14px;}
+.profile{display:flex; align-items:center; gap:10px; min-width:0;}
+.avatar{width:42px; height:42px; border-radius:50%; border:1px solid var(--line-strong); background:var(--chip-bg); color:var(--ink-soft); overflow:hidden; flex-shrink:0; padding:0; box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center;}
+.avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+.avatar svg{width:24px; height:24px;}
+.pname{font-weight:700; font-size:18px; letter-spacing:.2px; color:var(--green-ink); line-height:1.25; background:none; border:none; padding:4px 2px; text-align:left; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.pname-input{font-size:17px; font-weight:700; font-family:inherit; color:var(--ink); background:var(--input-bg); border:1px solid var(--green); border-radius:10px; padding:6px 10px; outline:none; width:150px;}
+.name-ok{width:34px; height:34px; border-radius:50%; border:none; background:var(--green); color:#f7f3ea; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+.name-ok svg{width:18px; height:18px;}
+.topbtns{display:flex; gap:8px; flex-shrink:0;}
+/* ---------- cards ---------- */
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:16px;}
+.card h3{margin:0 0 12px; font-size:15px; color:var(--green-ink); display:flex; justify-content:space-between; align-items:baseline;}
+.card h3 .side{font-weight:400; font-size:13px; color:var(--ink-soft);}
+/* ---------- balance (3D flip card) ---------- */
+.balance-wrap{position:relative; overflow:hidden; border-radius:var(--radius); margin-bottom:16px; box-shadow:var(--shadow-lg); perspective:900px;}
+.balance-flip{position:relative; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.4,0,.2,1);}
+.balance-wrap.hidden .balance-flip{transform:rotateY(180deg);}
+.balance{
+  background:var(--green); color:#f7f3ea; border-radius:var(--radius);
+  padding:18px 18px 16px; cursor:pointer;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+[data-theme="dark"] .balance{background:#234d2f; color:#eef4ea;}
+.balance .top{display:flex; justify-content:space-between; align-items:center;}
+.balance .lbl{font-size:13px; opacity:.85;}
+.balance .eye, .balance-cover .eye{width:34px; height:34px; border-radius:50%; border:1px solid rgba(247,243,234,.35); background:transparent; color:#f7f3ea; display:inline-flex; align-items:center; justify-content:center;}
+.balance .eye svg, .balance-cover .eye svg{width:19px; height:19px;}
+.balance .amt{font-size:36px; font-weight:700; line-height:1.15; margin-top:2px;}
+.balance .sub{font-size:13px; opacity:.85; margin-top:6px; line-height:1.5;}
+.balance-cover{
+  position:absolute; inset:0; border-radius:var(--radius); overflow:hidden;
+  transform:rotateY(180deg); cursor:pointer;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+}
+.balance-cover img{width:100%; height:100%; object-fit:cover; display:block;}
+.balance-cover .eye{position:absolute; top:12px; right:12px; background:rgba(20,18,12,.55); border-color:rgba(247,243,234,.45);}
+/* ---------- budget bar ---------- */
+@keyframes barIn{from{width:0;}}
+.budgetbar{height:12px; background:var(--chip-bg); border-radius:99px; overflow:hidden;}
+.budgetbar .fill{height:100%; background:var(--green-fill); border-radius:99px; animation:barIn .8s ease both;}
+.budgetbar .fill.over{background:var(--danger);}
+.budgetrow{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-top:8px;}
+.budgetrow b{color:var(--ink);}
+.statgrid{display:flex; gap:10px; margin-top:14px;}
+.stat{flex:1; background:var(--green-soft); border-radius:10px; padding:10px 12px;}
+.stat .v{font-size:17px; font-weight:700; color:var(--green-ink);}
+.stat .k{font-size:12px; color:var(--ink-soft);}
+.stat .s{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+/* ---------- donut ---------- */
+@keyframes donutIn{from{opacity:0; transform:rotate(-30deg) scale(.94);} to{opacity:1; transform:rotate(0) scale(1);}}
+.donut-wrap{display:flex; gap:16px; align-items:center;}
+.donut{animation:donutIn .7s ease both; flex-shrink:0;}
+.legend{flex:1; min-width:0;}
+.legend .row{display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13.5px;}
+.legend .dot{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+.legend .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.legend .am{font-weight:700;}
+.legend .pc{color:var(--ink-soft); font-size:12px; width:34px; text-align:right;}
+.empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:14px 0;}
+/* ---------- bars ---------- */
+@keyframes barGrow{from{transform:scaleY(0);} to{transform:scaleY(1);}}
+.bar-chart{display:flex; align-items:flex-end; gap:8px; height:120px; padding-top:6px;}
+.bar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;}
+.bar-col .bar{width:100%; max-width:34px; background:var(--green-fill); border-radius:6px 6px 3px 3px; opacity:.75; transform-origin:bottom; animation:barGrow .6s ease both;}
+.bar-col.today .bar{opacity:1; background:var(--green);}
+.bar-col .bv{font-size:11px; color:var(--ink-soft); line-height:1;}
+.bar-col .bl{font-size:12px; color:var(--ink-soft);}
+.bar-col.today .bl{color:var(--green-ink); font-weight:700;}
+/* ---------- activity ---------- */
+.actrow{display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--line);}
+.actrow:last-child{border-bottom:none;}
+.catic{width:38px; height:38px; border-radius:11px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+.catic svg{width:20px; height:20px;}
+.actrow .mid{flex:1; min-width:0;}
+.actrow .nm{font-size:14.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.actrow .dt{font-size:12px; color:var(--ink-soft);}
+.actrow .am{font-weight:700; font-size:15px; white-space:nowrap;}
+.actrow .am.inc{color:var(--green-fill);}
+/* ---------- day view / ledger ---------- */
+.datenav{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px;}
+.datenav .d{text-align:center; flex:1;}
+.datenav .d .date{font-size:19px; font-weight:700;}
+.datenav .d .wd{font-size:13px; color:var(--ink-soft);}
+.arrow{width:42px; height:42px; font-size:22px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink); border-radius:12px; box-shadow:var(--shadow); flex-shrink:0;}
+.search{position:relative; margin-bottom:14px;}
+.search input{
+  width:100%; padding:11px 13px; font-size:15px; font-family:inherit; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--line-strong); border-radius:12px; outline:none;
+}
+.search input:focus{border-color:var(--green);}
+.suggest{
+  position:absolute; left:0; right:0; top:100%; z-index:20; background:var(--card);
+  border:1px solid var(--line-strong); border-top:none; border-radius:0 0 12px 12px; box-shadow:var(--shadow);
+}
+.suggest button{display:block; width:100%; text-align:left; background:none; border:none; border-top:1px solid var(--line); padding:11px 13px; font-size:15px; color:var(--ink);}
+.suggest button:first-child{border-top:none;}
+.suggest button:active{background:var(--green-soft);}
+.suggest .none{padding:11px 13px; font-size:14px; color:var(--ink-soft);}
+.chips{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{
+  display:inline-flex; align-items:center; gap:7px; flex-shrink:0;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
+  border-radius:99px; padding:8px 13px 8px 9px; font-size:14px; box-shadow:var(--shadow);
+}
+.chip .catic{width:26px; height:26px; border-radius:50%;}
+.chip .catic svg{width:15px; height:15px;}
+table.ledger{width:100%; border-collapse:collapse;}
+table.ledger td{padding:11px 0; border-bottom:1px solid var(--line); vertical-align:middle;}
+table.ledger tr:last-child td{border-bottom:none;}
+table.ledger .ic{width:46px;}
+table.ledger .nm{font-size:14.5px; font-weight:700; line-height:1.3;}
+table.ledger .nt{font-size:12.5px; color:var(--ink-soft); line-height:1.3;}
+table.ledger .am{width:118px; text-align:right;}
+table.ledger .am input{
+  width:100%; text-align:right; font-size:16px; font-weight:700; font-family:inherit; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--line); border-radius:8px; padding:7px 9px; outline:none;
+}
+table.ledger .am input:focus{border-color:var(--green);}
+table.ledger .am input.inc{color:var(--green-fill);}
+table.ledger .del{width:34px; text-align:right;}
+table.ledger .del button{border:none; background:none; color:var(--ink-soft); font-size:19px; padding:4px 2px;}
+table.ledger .note-in{
+  width:100%; font-size:13.5px; font-family:inherit; color:var(--ink);
+  background:transparent; border:none; border-bottom:1px dashed var(--line-strong); padding:2px 0; outline:none;
+}
+.totalbar{border-top:2px solid var(--green); margin-top:6px; padding-top:12px;}
+.totalbar .row{display:flex; justify-content:space-between; font-size:15px; padding:3px 0;}
+.totalbar .row.big{font-size:18px; font-weight:700; color:var(--green-ink);}
+.totalbar .row .rem{color:var(--green-fill); font-weight:700;}
+/* ---------- setup ---------- */
+.setup-hero{margin:6px 0 18px; border-radius:18px; overflow:hidden; box-shadow:var(--shadow-lg);}
+.setup-hero img{width:100%; height:170px; object-fit:cover; display:block;}
+.setup-hero .cap{padding:14px 16px; background:var(--green); color:#f7f3ea;}
+.setup-hero .cap .t{font-size:20px; font-weight:700;}
+.setup-hero .cap .s{font-size:13px; opacity:.85;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:13.5px; color:var(--ink-soft); margin-bottom:6px;}
+.field input{
+  width:100%; padding:12px 13px; font-size:17px; font-family:inherit; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--line-strong); border-radius:12px; outline:none;
+}
+.field input:focus{border-color:var(--green);}
+.suggest-chip{
+  display:inline-block; margin-top:8px; border:1px dashed var(--green); color:var(--green-ink);
+  background:var(--green-soft); border-radius:99px; padding:6px 12px; font-size:13.5px;
+}
+/* ---------- settings ---------- */
+.setrow{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:14px;}
+.setrow h3{margin:0 0 10px; font-size:15px; color:var(--green-ink);}
+.seg{display:flex; gap:8px;}
+.seg .btn.on{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
+[data-theme="dark"] .seg .btn.on{color:#14210f;}
+.setrow .rowbtns{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+.foot{text-align:center; color:var(--ink-soft); font-size:12.5px; margin-top:18px;}
+.toast{
+  position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(12px);
+  background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:99px;
+  font-size:14px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:50;
+  max-width:90%; text-align:center; box-shadow:var(--shadow-lg);
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+/* ---------- tab bar + FAB ---------- */
+.tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  background:var(--card); border-top:1px solid var(--line);
+  display:flex; padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 14px rgba(38,34,26,.06);
+}
+.tabbar .tab{
+  flex:1; border:none; background:none; color:var(--ink-soft);
+  display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0 2px; font-size:12px;
+}
+.tabbar .tab svg{width:22px; height:22px;}
+.tabbar .tab.on{color:var(--green-ink); font-weight:700;}
+.fab{
+  position:fixed; right:18px; bottom:calc(82px + env(safe-area-inset-bottom)); z-index:41;
+  width:56px; height:56px; border-radius:50%; border:none; background:var(--green); color:#f7f3ea;
+  font-size:30px; line-height:1; box-shadow:var(--shadow-lg);
+  display:flex; align-items:center; justify-content:center;
+}
+[data-theme="dark"] .fab{color:#14210f;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* Sir Khant Finance — PUBLIC version (PWA + Android).
+   Local-first: all data stays on the user's phone (localStorage).
+   No accounts, no cloud sync, no personal data baked in.
+   Rename the app by changing APP_NAME here and in manifest.json. */
+var APP_NAME = 'Sir Khant Finance';
+var APP_VERSION = '1.0.3';
+var STORE_KEY = 'skf_public_v1';
+var MIN_ISO = '2020-01-01';
+var MAX_ISO = '2035-12-31';
+
+/* ---------------- icons (inline SVG, stroke style) ---------------- */
+var ICON_PATHS = {
+  breakfast: '<path d="M4 10h12v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 7c0-1.2 1-1.2 1-2.4"/><path d="M12 7c0-1.2 1-1.2 1-2.4"/>',
+  lunch: '<path d="M4 12h16c0 4.4-3.6 8-8 8s-8-3.6-8-8z"/><path d="M9.5 9L11 5"/><path d="M14.5 9L16 5"/>',
+  dinner: '<path d="M20 13.5A8.5 8.5 0 1 1 10.5 4 6.8 6.8 0 0 0 20 13.5z"/>',
+  transport: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="7.5" cy="19" r="1.6"/><circle cx="16.5" cy="19" r="1.6"/>',
+  cigarettes: '<rect x="6" y="3" width="12" height="18" rx="1.5"/><path d="M9 8h6"/><path d="M9 12h6"/>',
+  phone: '<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/>',
+  other: '<circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/>',
+  income: '<path d="M12 3v11"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>',
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/>',
+  settings: '<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.2"/><circle cx="9" cy="16" r="2.2"/>',
+  eye: '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M20 13.5A8.5 8.5 0 1 1 10.5 4 6.8 6.8 0 0 0 20 13.5z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  download: '<path d="M12 3v11"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>',
+  upload: '<path d="M12 21V10"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/>',
+  check: '<path d="M4 12.5l5 5L20 6.5"/>'
+};
+function icon(id){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICON_PATHS[id] || '') + '</svg>';
+}
+
+/* ---------------- categories ---------------- */
+var CATS = [
+  { id:'breakfast',  color:'#b7791f', tint:'#f7ecd4' },
+  { id:'lunch',      color:'#2e7d4f', tint:'#e2f0e6' },
+  { id:'dinner',     color:'#5b6b8c', tint:'#e4e8f1' },
+  { id:'transport',  color:'#a85b32', tint:'#f7e6da' },
+  { id:'cigarettes', color:'#7a6a53', tint:'#efe9dc' },
+  { id:'phone',      color:'#4f7a7a', tint:'#e1ecec' },
+  { id:'other',      color:'#8a8a7a', tint:'#ecece2' }
+];
+function catById(id){
+  for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i];
+  return CATS[CATS.length - 1];
+}
+function catIcon(cat, cls){
+  var c = catById(cat);
+  return '<span class="catic' + (cls ? ' ' + cls : '') + '" style="background:' + c.tint + ';color:' + c.color + '">' + icon(cat) + '</span>';
+}
+
+/* ---------------- i18n ---------------- */
+var MONTHS_MY = ['ဇန်နဝါရီ','ဖေဖော်ဝါရီ','မတ်','ဧပြီ','မေ','ဇွန်','ဇူလိုင်','သြဂုတ်','စက်တင်ဘာ','အောက်တိုဘာ','နိုဝင်ဘာ','ဒီဇင်ဘာ'];
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_FULL_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var WD_MY = ['တနင်္ဂနွေ','တနင်္လာ','အင်္ဂါ','ဗုဒ္ဓဟူး','ကြာသပတေး','သောကြာ','စနေ'];
+var WD_EN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var WD_SHORT_MY = ['နွေ','လာ','ဂါ','ဟူး','ကြာ','သာ','နေ'];
+var WD_SHORT_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+var I18N = {
+  my: {
+    subtitle:'နေ့စဉ် သုံးငွေ မှတ်တမ်း', remaining:'ကျန်ငွေ', kyat:'ကျပ်',
+    spentThisMonth:'ဒီလ သုံးပြီး', incomeThisMonth:'ဒီလ ဝင်ငွေ',
+    monthBudget:'ဒီလ သုံးငွေ', dailyAvg:'တနေ့ ပျမ်းမျှ', daysLeft:'လစာထုတ်ဖို့ လိုသည့်ရက်',
+    days:'ရက်', categories:'အမျိုးအစား', last7days:'နောက် ၇ ရက်', recent:'လတ်တလော',
+    noActivity:'မှတ်တမ်း မရှိသေးပါ', noExpenseYet:'ဒီလ အသုံးစရိတ် မရှိသေးပါ',
+    dayTotal:'တနေ့တာ စုစုပေါင်း', dayIncome:'တနေ့တာ ဝင်ငွေ', remainingAfter:'လက်ကျန်',
+    addIncome:'ဝင်ငွေ ထည့်မယ်', addOther:'အခြား ထည့်မယ်', note:'မှတ်ချက်',
+    today:'ယနေ့', searchPh:'ရက်စွဲ ရှာမယ် (ဥပမာ 5/12, Dec 5)',
+    noMatch:'မတွေ့ပါ', home:'ပင်မ', day:'နေ့စဉ်', settings:'ဆက်တင်',
+    theme:'အရောင်', lang:'ဘာသာစကား', dark:'အမှောင်', light:'အလင်း',
+    myanmar:'မြန်မာ', english:'English',
+    setupTitle:'စတင်အသုံးပြုမယ်', setupSub:'ကိုယ့်ငွေစာရင်း ကိုယ်တိုင် စီမံမယ်',
+    startBalance:'အစ လက်ကျန်ငွေ', paydayDay:'လစာထုတ်ရက် (လထဲက ရက်စွဲ)',
+    dailyTarget:'တနေ့ သုံးမယ့် ပမာဏ', suggestTarget:'အကြံပြုချက်',
+    start:'စတင်မယ်', skip:'ကျော်မယ်', editSetup:'အစ အချက်အလက်များ ပြင်မယ်',
+    saveSetup:'သိမ်းမယ်', saved:'သိမ်းပြီးပါပြီ',
+    backup:'အရန်သိမ်း (Backup)', exportBackup:'Backup ထုတ်မယ်', importBackup:'Backup ပြန်ထည့်မယ်',
+    backupSaved:'Backup ဖိုင် သိမ်းပြီးပါပြီ', importDone:'Backup ပြန်ထည့်ပြီးပါပြီ', importFail:'Backup ဖိုင် မမှန်ပါ',
+    saveDay:'သိမ်းမယ်', creditBy:'Developed by Min Khant',
+    editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
+    monthTotal:'စုစုပေါင်း', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
+    paydayRange:'လစာထုတ်ရက်က 1 ကနေ 31 အထိပဲ ရှိပါတယ်',
+    reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
+    resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
+    overBudget:'သတ်မှတ်ထားတာထက် {x} ကျပ် ပိုသုံးထားသည်။',
+    underBudget:'သတ်မှတ်ထားတာ {x} ကျပ် ကျန်သေးသည်။',
+    cat_breakfast:'မနက်စာ', cat_lunch:'နေ့လည်စာ', cat_dinner:'ညစာ',
+    cat_transport:'ကားခ', cat_cigarettes:'ဆေးလိပ်', cat_phone:'ဖုန်းဘေ',
+    cat_other:'အခြား', cat_income:'ဝင်ငွေ'
+  },
+  en: {
+    subtitle:'Daily spending tracker', remaining:'Balance', kyat:'MMK',
+    spentThisMonth:'Spent this month', incomeThisMonth:'Income this month',
+    monthBudget:'This month', dailyAvg:'Daily average', daysLeft:'Days until payday',
+    days:'days', categories:'Categories', last7days:'Last 7 days', recent:'Recent',
+    noActivity:'No entries yet', noExpenseYet:'No spending this month yet',
+    dayTotal:'Day total', dayIncome:'Day income', remainingAfter:'Balance',
+    addIncome:'Add income', addOther:'Add other', note:'Note',
+    today:'Today', searchPh:'Search date (e.g. 5/12, Dec 5)',
+    noMatch:'Not found', home:'Home', day:'Day', settings:'Settings',
+    theme:'Theme', lang:'Language', dark:'Dark', light:'Light',
+    myanmar:'Myanmar', english:'English',
+    setupTitle:'Get started', setupSub:'Your money, your records',
+    startBalance:'Starting balance', paydayDay:'Payday (day of month)',
+    dailyTarget:'Daily spending target', suggestTarget:'Suggested',
+    start:'Start', skip:'Skip', editSetup:'Edit starting details',
+    saveSetup:'Save', saved:'Saved',
+    backup:'Backup', exportBackup:'Export backup', importBackup:'Restore backup',
+    backupSaved:'Backup file saved', importDone:'Backup restored', importFail:'Invalid backup',
+    saveDay:'Save', creditBy:'Developed by Min Khant',
+    editNameHint:'Type your name', photoFail:'Could not load photo',
+    monthTotal:'Total', monthDays:'{m} has only {x} days',
+    paydayRange:'Payday must be between 1 and 31',
+    reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
+    resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
+    overBudget:'{x} MMK over the monthly budget.',
+    underBudget:'{x} MMK left of the monthly budget.',
+    cat_breakfast:'Breakfast', cat_lunch:'Lunch', cat_dinner:'Dinner',
+    cat_transport:'Transport', cat_cigarettes:'Cigarettes', cat_phone:'Phone bill',
+    cat_other:'Other', cat_income:'Income'
+  }
+};
+
+/* ---------------- date helpers (pure) ---------------- */
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function toISO(d){ return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function fromISO(iso){
+  var p = String(iso).split('-');
+  if (p.length !== 3) return null;
+  var d = new Date(+p[0], +p[1] - 1, +p[2]);
+  if (d.getFullYear() !== +p[0] || d.getMonth() !== +p[1] - 1 || d.getDate() !== +p[2]) return null;
+  return d;
+}
+function isoAdd(iso, n){ var d = fromISO(iso); if (!d) return iso; d.setDate(d.getDate() + n); return toISO(d); }
+function clampISO(iso){ if (iso < MIN_ISO) return MIN_ISO; if (iso > MAX_ISO) return MAX_ISO; return iso; }
+var _todayOverride = null;
+function todayISO(){ if (_todayOverride) return _todayOverride; return toISO(new Date()); }
+function isToday(iso){ return iso === todayISO(); }
+function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); }
+function monthKeyOf(iso){ return String(iso).slice(0, 7); }
+function monthLabel(key){
+  var p = key.split('-');
+  var y = +p[0], m = +p[1];
+  if (state.settings.lang === 'my') return MONTHS_MY[m - 1] + ' ' + y;
+  return MONTHS_FULL_EN[m - 1] + ' ' + y;
+}
+function formatDateLong(iso){
+  var d = fromISO(iso);
+  if (!d) return iso;
+  if (state.settings.lang === 'my')
+    return d.getDate() + ' ' + MONTHS_MY[d.getMonth()] + ' ' + d.getFullYear();
+  return MONTHS_EN[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+function formatDateShort(iso){
+  var d = fromISO(iso);
+  if (!d) return iso;
+  if (state.settings.lang === 'my')
+    return d.getDate() + ' ' + MONTHS_MY[d.getMonth()];
+  return MONTHS_EN[d.getMonth()] + ' ' + d.getDate();
+}
+function weekdayName(iso){
+  var d = fromISO(iso);
+  if (!d) return '';
+  return (state.settings.lang === 'my' ? WD_MY : WD_EN)[d.getDay()];
+}
+var MY_DIGITS = {'၀':'0','၁':'1','၂':'2','၃':'3','၄':'4','၅':'5','၆':'6','၇':'7','၈':'8','၉':'9'};
+function normDigits(s){ return String(s).replace(/[၀-၉]/g, function(c){ return MY_DIGITS[c]; }); }
+function monthNameToNum(s){
+  s = s.toLowerCase();
+  for (var i = 0; i < 12; i++){
+    if (MONTHS_EN[i].toLowerCase() === s || MONTHS_FULL_EN[i].toLowerCase() === s) return i + 1;
+    if (MONTHS_MY[i] === s) return i + 1;
+  }
+  return 0;
+}
+function validDate(y, m, d){
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  var dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  var iso = toISO(dt);
+  if (iso < MIN_ISO || iso > MAX_ISO) return null;
+  return iso;
+}
+function parseDateInput(raw){
+  var q = normDigits(String(raw || '')).trim().toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ');
+  if (!q) return null;
+  var m;
+  m = q.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) return validDate(+m[1], +m[2], +m[3]);
+  m = q.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (m) return validDate(+m[3], +m[2], +m[1]);
+  m = q.match(/^(\d{1,2})[-/.](\d{1,2})$/);
+  if (m){
+    var y = new Date().getFullYear();
+    var r = validDate(y, +m[2], +m[1]);
+    if (r) return r;
+    return validDate(y + 1, +m[2], +m[1]);
+  }
+  m = q.match(/^([a-z\u1000-\u109f]+) (\d{1,2})(?: (\d{4}))?$/);
+  if (m){
+    var mo = monthNameToNum(m[1]);
+    if (mo) return validDate(m[3] ? +m[3] : new Date().getFullYear(), mo, +m[2]);
+  }
+  m = q.match(/^(\d{1,2}) ([a-z\u1000-\u109f]+)(?: (\d{4}))?$/);
+  if (m){
+    var mo2 = monthNameToNum(m[2]);
+    if (mo2) return validDate(m[3] ? +m[3] : new Date().getFullYear(), mo2, +m[1]);
+  }
+  return null;
+}
+/* When a date input matches a date pattern but the day does not exist in
+   that month (e.g. 32/11), returns {month, maxDay, day} so the UI can say
+   which day the month ends on. Returns null otherwise. */
+function dateInputError(raw){
+  var q = normDigits(String(raw || '')).trim().toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ');
+  if (!q) return null;
+  var y = new Date().getFullYear(), m = 0, d = 0, mm;
+  mm = q.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (mm){ y = +mm[1]; m = +mm[2]; d = +mm[3]; }
+  else if ((mm = q.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/))){ d = +mm[1]; m = +mm[2]; y = +mm[3]; }
+  else if ((mm = q.match(/^(\d{1,2})[-/.](\d{1,2})$/))){ d = +mm[1]; m = +mm[2]; }
+  else if ((mm = q.match(/^([a-z\u1000-\u109f]+) (\d{1,2})(?: (\d{4}))?$/))){ m = monthNameToNum(mm[1]); d = +mm[2]; if (mm[3]) y = +mm[3]; }
+  else if ((mm = q.match(/^(\d{1,2}) ([a-z\u1000-\u109f]+)(?: (\d{4}))?$/))){ d = +mm[1]; m = monthNameToNum(mm[2]); if (mm[3]) y = +mm[3]; }
+  else return null;
+  if (!m || m < 1 || m > 12) return null;
+  if (d < 1) return null;
+  var max = daysInMonth(y, m);
+  if (d <= max) return null;
+  return { month: m, maxDay: max, day: d };
+}
+function dateSuggestions(raw){
+  var exact = parseDateInput(raw);
+  var out = [];
+  if (exact) out.push(exact);
+  var q = normDigits(String(raw || '')).trim().toLowerCase();
+  if (!q) return out;
+  var cur = todayISO();
+  for (var i = 0; i < 370 && out.length < 8; i++){
+    var iso = isoAdd(cur, i - 180);
+    if (iso < MIN_ISO || iso > MAX_ISO) continue;
+    if (out.indexOf(iso) !== -1) continue;
+    var hay = (formatDateLong(iso) + ' ' + iso).toLowerCase();
+    if (hay.indexOf(q) !== -1) out.push(iso);
+  }
+  return out;
+}
+
+/* ---------------- state ---------------- */
+var storage = {
+  get: function(k){
+    try {
+      if (typeof localStorage !== 'undefined') return localStorage.getItem(k);
+    } catch (e) {}
+    return null;
+  },
+  set: function(k, v){
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(k, v);
+    } catch (e) {}
+  }
+};
+function defaultState(){
+  return {
+    setup: { done:false, balance:0, paydayDay:1, dailyTarget:0 },
+    days: {},
+    settings: { theme:'light', lang:'my' },
+    profile: { name:'', photo:'' }
+  };
+}
+var state = defaultState();
+function loadState(){
+  try {
+    var raw = storage.get(STORE_KEY);
+    if (!raw) return;
+    var s = JSON.parse(raw);
+    if (!s || typeof s !== 'object') return;
+    if (s.setup && typeof s.setup === 'object'){
+      if (typeof s.setup.balance === 'number') state.setup.balance = s.setup.balance;
+      if (typeof s.setup.paydayDay === 'number') state.setup.paydayDay = s.setup.paydayDay;
+      if (typeof s.setup.dailyTarget === 'number') state.setup.dailyTarget = s.setup.dailyTarget;
+      if (s.setup.done === true) state.setup.done = true;
+    }
+    if (s.days && typeof s.days === 'object') state.days = s.days;
+    if (s.settings && typeof s.settings === 'object'){
+      if (s.settings.theme === 'dark' || s.settings.theme === 'light') state.settings.theme = s.settings.theme;
+      if (s.settings.lang === 'my' || s.settings.lang === 'en') state.settings.lang = s.settings.lang;
+    }
+    if (s.profile && typeof s.profile === 'object'){
+      if (!state.profile) state.profile = { name:'', photo:'' };
+      if (typeof s.profile.name === 'string') state.profile.name = s.profile.name.slice(0, 24);
+      if (typeof s.profile.photo === 'string') state.profile.photo = s.profile.photo;
+    }
+  } catch (e) { /* corrupted storage: keep defaults */ }
+}
+function persist(){ try { storage.set(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+function blankDay(){ return { entries:[], income:[] }; }
+function getDay(iso){
+  if (!state.days[iso]) state.days[iso] = blankDay();
+  var d = state.days[iso];
+  if (!Array.isArray(d.entries)) d.entries = [];
+  if (!Array.isArray(d.income)) d.income = [];
+  return d;
+}
+function hasData(day){
+  if (!day) return false;
+  return (day.entries && day.entries.length > 0) || (day.income && day.income.length > 0);
+}
+function t(key){ var L = I18N[state.settings.lang] || I18N.my; return (key in L) ? L[key] : key; }
+function fmt(n){ return Math.round(Number(n) || 0).toLocaleString('en-US'); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ---------------- totals (pure) ---------------- */
+function dayExpense(day){
+  var sum = 0;
+  (day.entries || []).forEach(function(e){ sum += Number(e.amount) || 0; });
+  return sum;
+}
+function dayIncome(day){
+  var sum = 0;
+  (day.income || []).forEach(function(r){ sum += Number(r.amount) || 0; });
+  return sum;
+}
+function totalsAll(){
+  var exp = 0, inc = 0;
+  for (var iso in state.days){
+    exp += dayExpense(state.days[iso]);
+    inc += dayIncome(state.days[iso]);
+  }
+  return { expenses: exp, income: inc };
+}
+function remainingAll(){
+  var tt = totalsAll();
+  return state.setup.balance + tt.income - tt.expenses;
+}
+function monthTotals(key){
+  var exp = 0, inc = 0, byCat = {};
+  for (var iso in state.days){
+    if (monthKeyOf(iso) !== key) continue;
+    var d = state.days[iso];
+    (d.entries || []).forEach(function(e){
+      var a = Number(e.amount) || 0;
+      exp += a;
+      var c = e.cat || 'other';
+      byCat[c] = (byCat[c] || 0) + a;
+    });
+    inc += dayIncome(d);
+  }
+  return { expenses: exp, income: inc, byCat: byCat };
+}
+function monthBudget(key){
+  var p = key.split('-');
+  return (Number(state.setup.dailyTarget) || 0) * daysInMonth(+p[0], +p[1]);
+}
+function last7(){
+  var out = [];
+  var cur = todayISO();
+  for (var i = 6; i >= 0; i--){
+    var iso = isoAdd(cur, -i);
+    var d = state.days[iso];
+    out.push({ iso: iso, total: d ? dayExpense(d) : 0 });
+  }
+  return out;
+}
+function recentActivity(n){
+  var all = [];
+  var isos = Object.keys(state.days).sort().reverse();
+  for (var i = 0; i < isos.length; i++){
+    var d = state.days[isos[i]];
+    for (var j = (d.entries || []).length - 1; j >= 0; j--){
+      var e = d.entries[j];
+      all.push({ iso: isos[i], cat: e.cat || 'other', note: e.note || '', amount: Number(e.amount) || 0, isIncome: false });
+    }
+    for (var k = (d.income || []).length - 1; k >= 0; k--){
+      var r = d.income[k];
+      all.push({ iso: isos[i], cat: 'income', note: r.note || '', amount: Number(r.amount) || 0, isIncome: true });
+    }
+  }
+  return all.slice(0, n);
+}
+/* Days from today until the next payday (paydayDay = day of month). */
+/* Next payday as an ISO date. A payday day that does not exist in a month
+   (e.g. the 31st in November) is clamped to that month's last day. */
+function nextPaydayISO(paydayDay, today){
+  var t = fromISO(today || todayISO());
+  var y = t.getFullYear(), m = t.getMonth() + 1, day = t.getDate();
+  var pd = Math.max(1, Math.min(31, Math.round(paydayDay) || 1));
+  var thisMonth = new Date(y, m - 1, Math.min(pd, daysInMonth(y, m)));
+  if (day < thisMonth.getDate()) return toISO(thisMonth);
+  var ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1;
+  return toISO(new Date(ny, nm - 1, Math.min(pd, daysInMonth(ny, nm))));
+}
+function daysUntilPayday(paydayDay, today){
+  var t = fromISO(today || todayISO());
+  var next = fromISO(nextPaydayISO(paydayDay, today));
+  var ms = next.getTime() - new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
+  return Math.max(0, Math.round(ms / 86400000));
+}
+function suggestTarget(balance, paydayDay, today){
+  var days = daysUntilPayday(paydayDay, today);
+  return Math.round((Number(balance) || 0) / Math.max(1, days));
+}
+
+/* ---------------- chart data (pure) ---------------- */
+var DONUT_R = 34;
+var DONUT_C = 2 * Math.PI * DONUT_R;
+function donutSegments(byCat){
+  var total = 0;
+  for (var c in byCat) total += byCat[c];
+  if (total <= 0) return [];
+  var segs = [], offset = 0;
+  CATS.forEach(function(cat){
+    var amt = byCat[cat.id] || 0;
+    if (amt <= 0) return;
+    var frac = amt / total;
+    segs.push({
+      cat: cat.id, amount: amt, pct: Math.round(frac * 100),
+      color: cat.color, dash: (frac * DONUT_C).toFixed(1),
+      offset: (-offset * DONUT_C).toFixed(1)
+    });
+    offset += frac;
+  });
+  return segs;
+}
+
+/* ---------------- backup ---------------- */
+function exportState(){ return JSON.stringify(state); }
+function importState(text){
+  var s;
+  try { s = JSON.parse(String(text || '')); }
+  catch (e){ return { ok:false, error:'parse' }; }
+  if (!s || typeof s !== 'object' || !s.setup || typeof s.setup !== 'object' ||
+      !s.days || typeof s.days !== 'object') return { ok:false, error:'shape' };
+  for (var iso in s.days){
+    var d = s.days[iso];
+    if (!d || typeof d !== 'object') return { ok:false, error:'day' };
+    if (d.entries !== undefined && !Array.isArray(d.entries)) return { ok:false, error:'entries' };
+    if (d.income !== undefined && !Array.isArray(d.income)) return { ok:false, error:'income' };
+  }
+  var next = defaultState();
+  if (typeof s.setup.balance === 'number') next.setup.balance = s.setup.balance;
+  if (typeof s.setup.paydayDay === 'number') next.setup.paydayDay = s.setup.paydayDay;
+  if (typeof s.setup.dailyTarget === 'number') next.setup.dailyTarget = s.setup.dailyTarget;
+  next.setup.done = s.setup.done === true;
+  next.days = s.days;
+  if (s.settings && typeof s.settings === 'object'){
+    if (s.settings.theme === 'dark' || s.settings.theme === 'light') next.settings.theme = s.settings.theme;
+    if (s.settings.lang === 'my' || s.settings.lang === 'en') next.settings.lang = s.settings.lang;
+  }
+  if (s.profile && typeof s.profile === 'object'){
+    if (typeof s.profile.name === 'string') next.profile.name = s.profile.name.slice(0, 24);
+    if (typeof s.profile.photo === 'string') next.profile.photo = s.profile.photo;
+  }
+  state = next;
+  persist();
+  return { ok:true };
+}
+/* ---------------- view state ---------------- */
+var view = { name:'home', iso: clampISO(todayISO()) };
+var searchText = '';
+var searchOpen = false;
+/* Balance hide/show: default VISIBLE for first-time users (the eye button
+   is the visible affordance). Tap the eye or the card to flip the card
+   over and hide the balance behind the logo cover; tap again to flip
+   it back. */
+var balanceHidden = false;
+var lastDateErrKey = '';
+var setupDraft = null;
+var resetArmed = false;
+var resetTimer = null;
+var lastViewKey = '';
+/* Profile: display name + photo, editable from the header. Default name is
+   the literal "username" and the default avatar is a generic silhouette —
+   no photo of the developer is ever used as the profile picture. */
+var editingName = false;
+var nameDraft = '';
+/* Day dirty flag: set on any change to the current day, cleared by Save
+   or by navigating away. Drives the Save button on the day view. */
+var dayDirty = false;
+function profileName(){ return (state.profile && state.profile.name) ? state.profile.name : 'username'; }
+function profilePhoto(){ return (state.profile && state.profile.photo) ? state.profile.photo : ''; }
+
+function el(id){ return (typeof document !== 'undefined') ? document.getElementById(id) : null; }
+function applyTheme(){
+  if (typeof document === 'undefined') return;
+  if (document.documentElement) document.documentElement.setAttribute('data-theme', state.settings.theme);
+  if (document.querySelector){
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', state.settings.theme === 'dark' ? '#1d1a15' : '#f7f3ea');
+  }
+}
+var toastTimer = null;
+function showToast(msg){
+  var t = el('toast');
+  if (!t) return;
+  t.textContent = msg;
+  if (t.classList) t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ if (t.classList) t.classList.remove('show'); }, 2200);
+}
+function hideBalance(){
+  if (balanceHidden) return;
+  balanceHidden = true;
+  var w = el('balanceWrap');
+  if (w && w.classList) w.classList.add('hidden');
+}
+function showBalance(){
+  if (!balanceHidden) return;
+  balanceHidden = false;
+  var w = el('balanceWrap');
+  if (w && w.classList) w.classList.remove('hidden');
+}
+/* Single tap toggles the flip: tap the eye (or the card) to hide the
+   balance behind the cover, tap again to flip it back. */
+function toggleBalance(){
+  if (balanceHidden) showBalance();
+  else hideBalance();
+}
+/* Animated count-up for dashboard numbers (no-op without a real DOM). */
+function animateCountUps(){
+  if (typeof document === 'undefined' || !document.querySelectorAll) return;
+  var nodes = document.querySelectorAll('[data-countup]');
+  for (var i = 0; i < nodes.length; i++){
+    (function(node){
+      var target = Number(node.getAttribute('data-countup')) || 0;
+      if (typeof requestAnimationFrame === 'undefined'){ node.textContent = fmt(target); return; }
+      var start = null, dur = 600;
+      node.textContent = '0';
+      function step(ts){
+        if (!start) start = ts;
+        var p = Math.min(1, (ts - start) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        node.textContent = fmt(Math.round(target * eased));
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })(nodes[i]);
+  }
+}
+
+/* ---------------- shared pieces ---------------- */
+function headerHTML(){
+  var dark = state.settings.theme === 'dark';
+  var photo = profilePhoto();
+  var av = photo ? '<img src="' + esc(photo) + '" alt="">' : icon('user');
+  var namePart;
+  if (editingName){
+    namePart = '<input class="pname-input" id="nameInput" type="text" maxlength="24" placeholder="' + esc(t('editNameHint')) + '" value="' + esc((state.profile && state.profile.name) || '') + '">' +
+      '<button type="button" class="name-ok" data-action="save-name">' + icon('check') + '</button>';
+  } else {
+    namePart = '<button type="button" class="pname" data-action="edit-name">' + esc(profileName()) + '</button>';
+  }
+  return '<header class="top"><div class="profile">' +
+    '<button type="button" class="avatar" data-action="pick-photo">' + av + '</button>' +
+    namePart + '</div>' +
+    '<div class="topbtns">' +
+    '<button type="button" class="iconbtn" data-action="theme-toggle">' + icon(dark ? 'sun' : 'moon') + '</button>' +
+    '<button type="button" class="iconbtn" data-action="lang-toggle" style="font-size:13px;font-weight:700">' + (state.settings.lang === 'my' ? 'EN' : 'မြန်မာ') + '</button>' +
+    '</div>' +
+    '<input type="file" id="photoInput" accept="image/*" style="display:none"></header>';
+}
+function searchHTML(){
+  var sugg = '';
+  if (searchOpen && searchText.trim()){
+    var list = dateSuggestions(searchText);
+    if (list.length){
+      sugg = '<div class="suggest">' + list.map(function(iso){
+        return '<button type="button" data-action="goto-date" data-iso="' + iso + '">' + esc(formatDateLong(iso)) + '</button>';
+      }).join('') + '</div>';
+    } else {
+      sugg = '<div class="suggest"><div class="none">' + esc(t('noMatch')) + '</div></div>';
+    }
+  }
+  return '<div class="search"><input type="text" id="searchInput" placeholder="' + esc(t('searchPh')) +
+    '" value="' + esc(searchText) + '" autocomplete="off">' + sugg + '</div>';
+}
+function tabbarHTML(){
+  if (view.name === 'setup') return '';
+  var tabs = [
+    { name:'home', label: t('home'), ic:'home' },
+    { name:'day', label: t('day'), ic:'calendar' },
+    { name:'settings', label: t('settings'), ic:'settings' }
+  ];
+  var h = '<div class="tabbar">';
+  tabs.forEach(function(tb){
+    h += '<button type="button" class="tab' + (view.name === tb.name ? ' on' : '') + '" data-action="tab-' + tb.name + '">' + icon(tb.ic) + '<span>' + esc(tb.label) + '</span></button>';
+  });
+  h += '</div>';
+  return h;
+}
+
+/* ---------------- setup ---------------- */
+function setupViewHTML(){
+  if (!setupDraft) setupDraft = {
+    balance: state.setup.balance || '',
+    paydayDay: state.setup.paydayDay || 1,
+    dailyTarget: state.setup.dailyTarget || ''
+  };
+  var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
+  var h = '<div class="setup-hero"><img src="logo.jpg" alt="">' +
+    '<div class="cap"><div class="t">' + esc(t('setupTitle')) + '</div>' +
+    '<div class="s">' + esc(t('setupSub')) + '</div></div></div>';
+  h += '<div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
+    '<input id="setupBal" type="number" inputmode="numeric" min="0" value="' + esc(setupDraft.balance) + '"></div>';
+  h += '<div class="field"><label>' + esc(t('paydayDay')) + '</label>' +
+    '<input id="setupPay" type="number" inputmode="numeric" min="1" max="31" value="' + esc(setupDraft.paydayDay) + '"></div>';
+  h += '<div class="field"><label>' + esc(t('dailyTarget')) + ' (' + esc(t('kyat')) + ' ' + esc(t('perDay')) + ')</label>' +
+    '<input id="setupTgt" type="number" inputmode="numeric" min="0" value="' + esc(setupDraft.dailyTarget) + '">' +
+    '<button type="button" class="suggest-chip" id="suggestChip" data-action="use-suggest">' +
+    esc(t('suggestTarget')) + ': ' + fmt(sug) + ' ' + esc(t('kyat')) + esc(t('perDay')) + '</button></div>';
+  h += '<button type="button" class="btn primary big" data-action="setup-start">' + esc(t('start')) + '</button>';
+  h += '<div style="text-align:center;margin-top:12px"><button type="button" class="btn ghost" data-action="setup-skip">' + esc(t('skip')) + '</button></div>';
+  return h;
+}
+function readSetupInputs(){
+  var bal = el('setupBal'), pay = el('setupPay'), tgt = el('setupTgt');
+  return {
+    balance: Math.max(0, Math.round(Number(bal ? bal.value : 0) || 0)),
+    paydayDay: Math.round(Number(pay ? pay.value : 1) || 1),
+    dailyTarget: Math.max(0, Math.round(Number(tgt ? tgt.value : 0) || 0))
+  };
+}
+
+/* ---------------- home (dashboard) ---------------- */
+function balanceHTML(){
+  var rem = remainingAll();
+  var mt = monthTotals(monthKeyOf(todayISO()));
+  return '<div class="balance-wrap' + (balanceHidden ? ' hidden' : '') + '" id="balanceWrap">' +
+    '<div class="balance-flip">' +
+    '<div class="balance" data-action="toggle-balance">' +
+    '<div class="top"><div class="lbl">' + esc(t('remaining')) + '</div>' +
+    '<button type="button" class="eye" data-action="toggle-balance">' + icon('eye') + '</button></div>' +
+    '<div class="amt"><span data-countup="' + rem + '">' + fmt(rem) + '</span> ' + esc(t('kyat')) + '</div>' +
+    '<div class="sub">' + esc(t('spentThisMonth')) + ': ' + fmt(mt.expenses) + ' · ' + esc(t('incomeThisMonth')) + ': ' + fmt(mt.income) + '</div>' +
+    '</div>' +
+    '<div class="balance-cover" data-action="toggle-balance"><img src="logo.jpg" alt="">' +
+    '<button type="button" class="eye" data-action="toggle-balance">' + icon('eyeOff') + '</button></div>' +
+    '</div></div>';
+}
+function budgetHTML(){
+  var key = monthKeyOf(todayISO());
+  var mt = monthTotals(key);
+  var budget = monthBudget(key);
+  var pct = budget > 0 ? Math.min(100, Math.round(mt.expenses / budget * 100)) : 0;
+  var elapsed = Math.max(1, fromISO(todayISO()).getDate());
+  var dailyAvg = Math.round(mt.expenses / elapsed);
+  var daysLeft = daysUntilPayday(state.setup.paydayDay);
+  var pdISO = nextPaydayISO(state.setup.paydayDay);
+  var h = '<div class="card fade-up" style="animation-delay:60ms"><h3>' + esc(monthLabel(key)) +
+    '<span class="side">' + esc(t('monthBudget')) + '</span></h3>';
+  if (budget > 0){
+    h += '<div class="budgetbar"><div class="fill' + (mt.expenses > budget ? ' over' : '') + '" style="width:' + pct + '%"></div></div>' +
+      '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b><span data-countup="' + mt.expenses + '">' + fmt(mt.expenses) + '</span></b></span>' +
+      '<span>' + esc(t('monthTotal')) + ': <b>' + fmt(budget) + '</b> ' + esc(t('kyat')) + '</span></div>';
+  } else {
+    h += '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b>' + fmt(mt.expenses) + '</b></span>' +
+      '<span>' + esc(t('incomeThisMonth')) + ': <b>' + fmt(mt.income) + '</b></span></div>';
+  }
+  h += '<div class="statgrid">' +
+    '<div class="stat"><div class="v">' + fmt(dailyAvg) + '</div><div class="k">' + esc(t('dailyAvg')) + '</div></div>' +
+    '<div class="stat"><div class="v">' + daysLeft + ' ' + esc(t('days')) + '</div><div class="k">' + esc(t('daysLeft')) + '</div><div class="s">' + esc(formatDateShort(pdISO)) + '</div></div>' +
+  '</div></div>';
+  return h;
+}
+function donutHTML(){
+  var mt = monthTotals(monthKeyOf(todayISO()));
+  var segs = donutSegments(mt.byCat);
+  var h = '<div class="card fade-up" style="animation-delay:120ms"><h3>' + esc(t('categories')) + '</h3>';
+  if (!segs.length){ h += '<div class="empty">' + esc(t('noExpenseYet')) + '</div></div>'; return h; }
+  h += '<div class="donut-wrap"><svg class="donut" width="120" height="120" viewBox="0 0 84 84">' +
+    '<circle cx="42" cy="42" r="' + DONUT_R + '" fill="none" stroke-width="12" style="stroke:var(--chip-bg)"/>';
+  segs.forEach(function(s){
+    h += '<circle cx="42" cy="42" r="' + DONUT_R + '" fill="none" stroke="' + s.color + '" stroke-width="12" stroke-dasharray="' + s.dash + ' ' + DONUT_C.toFixed(1) + '" stroke-dashoffset="' + s.offset + '" transform="rotate(-90 42 42)"/>';
+  });
+  h += '</svg><div class="legend">';
+  segs.forEach(function(s){
+    h += '<div class="row"><span class="dot" style="background:' + s.color + '"></span><span class="nm">' + esc(t('cat_' + s.cat)) + '</span><span class="am">' + fmt(s.amount) + '</span><span class="pc">' + s.pct + '%</span></div>';
+  });
+  h += '</div></div></div>';
+  return h;
+}
+function barsHTML(){
+  var data = last7();
+  var max = 0;
+  data.forEach(function(d){ if (d.total > max) max = d.total; });
+  var h = '<div class="card fade-up" style="animation-delay:180ms"><h3>' + esc(t('last7days')) + '</h3><div class="bar-chart">';
+  data.forEach(function(d, i){
+    var pct = max > 0 ? Math.round(d.total / max * 100) : 0;
+    var wd = fromISO(d.iso).getDay();
+    var lbl = (state.settings.lang === 'my' ? WD_SHORT_MY : WD_SHORT_EN)[wd];
+    h += '<div class="bar-col' + (isToday(d.iso) ? ' today' : '') + '">' +
+      '<div class="bv">' + (d.total > 0 ? fmt(d.total) : '') + '</div>' +
+      '<div class="bar" style="height:' + (d.total > 0 ? Math.max(pct, 5) : 0) + '%;animation-delay:' + (i * 60) + 'ms"></div>' +
+      '<div class="bl">' + lbl + '</div></div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+function recentHTML(){
+  var items = recentActivity(5);
+  var h = '<div class="card fade-up" style="animation-delay:240ms"><h3>' + esc(t('recent')) + '</h3>';
+  if (!items.length){ h += '<div class="empty">' + esc(t('noActivity')) + '</div></div>'; return h; }
+  items.forEach(function(it, i){
+    h += '<div class="actrow fade-up" style="animation-delay:' + (i * 50) + 'ms">' +
+      (it.isIncome
+        ? '<span class="catic" style="background:var(--green-soft);color:var(--green-fill)">' + icon('income') + '</span>'
+        : catIcon(it.cat)) +
+      '<div class="mid"><div class="nm">' + esc(it.isIncome ? t('cat_income') : t('cat_' + it.cat)) + (it.note ? ' · ' + esc(it.note) : '') + '</div>' +
+      '<div class="dt">' + esc(formatDateLong(it.iso)) + '</div></div>' +
+      '<div class="am' + (it.isIncome ? ' inc' : '') + '">' + (it.isIncome ? '+' : '−') + fmt(it.amount) + '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+function homeViewHTML(){
+  var h = headerHTML();
+  h += balanceHTML();
+  h += budgetHTML();
+  h += donutHTML();
+  h += barsHTML();
+  h += recentHTML();
+  h += '<button type="button" class="fab" data-action="fab-add">+</button>';
+  h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  return h;
+}
+
+/* ---------------- day view ---------------- */
+function entryRowHTML(e, i){
+  return '<tr><td class="ic">' + catIcon(e.cat) + '</td>' +
+    '<td><div class="nm">' + esc(t('cat_' + (e.cat || 'other'))) + '</div>' +
+    '<input class="note-in" type="text" placeholder="' + esc(t('note')) + '" value="' + esc(e.note || '') + '" data-entry-note="' + i + '"></td>' +
+    '<td class="am"><input type="number" inputmode="numeric" min="0" value="' + (e.amount ? e.amount : '') + '" data-entry-amount="' + i + '"></td>' +
+    '<td class="del"><button type="button" data-action="del-entry" data-idx="' + i + '">×</button></td></tr>';
+}
+function incomeRowHTML(r, i){
+  return '<tr><td class="ic"><span class="catic" style="background:var(--green-soft);color:var(--green-fill)">' + icon('income') + '</span></td>' +
+    '<td><div class="nm">' + esc(t('cat_income')) + '</div>' +
+    '<input class="note-in" type="text" placeholder="' + esc(t('note')) + '" value="' + esc(r.note || '') + '" data-income-note="' + i + '"></td>' +
+    '<td class="am"><input class="inc" type="number" inputmode="numeric" min="0" value="' + (r.amount ? r.amount : '') + '" data-income-amount="' + i + '"></td>' +
+    '<td class="del"><button type="button" data-action="del-income" data-idx="' + i + '">×</button></td></tr>';
+}
+function dayViewHTML(){
+  var iso = view.iso;
+  var day = getDay(iso);
+  var total = dayExpense(day), inc = dayIncome(day);
+  var rem = remainingAll();
+  var h = headerHTML();
+  h += searchHTML();
+  h += '<div class="datenav">' +
+    '<button type="button" class="arrow" data-action="nav-prev">&#8249;</button>' +
+    '<div class="d"><div class="date">' + esc(formatDateLong(iso)) + '</div>' +
+    '<div class="wd">' + esc(weekdayName(iso)) + (isToday(iso) ? ' · ' + esc(t('today')) : '') + '</div></div>' +
+    '<button type="button" class="arrow" data-action="nav-next">&#8250;</button></div>';
+  h += '<div class="chips" id="chipRow">';
+  CATS.forEach(function(c){
+    h += '<button type="button" class="chip" data-action="add-cat" data-cat="' + c.id + '">' + catIcon(c.id) + esc(t('cat_' + c.id)) + '</button>';
+  });
+  h += '</div>';
+  h += '<div class="card"><table class="ledger">';
+  day.entries.forEach(function(e, i){ h += entryRowHTML(e, i); });
+  day.income.forEach(function(r, i){ h += incomeRowHTML(r, i); });
+  h += '</table>';
+  if (!hasData(day)) h += '<div class="empty">' + esc(t('noActivity')) + '</div>';
+  h += '<div class="totalbar">' +
+    '<div class="row big"><span>' + esc(t('dayTotal')) + '</span><span>' + fmt(total) + '</span></div>' +
+    '<div class="row"><span>' + esc(t('dayIncome')) + '</span><span>+' + fmt(inc) + '</span></div>' +
+    '<div class="row"><span>' + esc(t('remainingAfter')) + '</span><span class="rem">' + fmt(rem) + ' ' + esc(t('kyat')) + '</span></div>' +
+  '</div>';
+  h += '<div style="margin-top:12px"><button type="button" class="btn" style="width:100%" data-action="add-income">+ ' + esc(t('addIncome')) + '</button></div>';
+  if (dayDirty && hasData(day)) h += '<div style="margin-top:10px"><button type="button" class="btn primary big" data-action="save-day">' + esc(t('saveDay')) + '</button></div>';
+  h += '</div>';
+  h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  return h;
+}
+
+/* ---------------- settings ---------------- */
+function settingsViewHTML(){
+  var h = headerHTML();
+  h += '<div class="setrow"><h3>' + esc(t('theme')) + '</h3><div class="seg">' +
+    '<button type="button" class="btn' + (state.settings.theme === 'light' ? ' on' : '') + '" data-action="set-theme" data-theme="light">' + esc(t('light')) + '</button>' +
+    '<button type="button" class="btn' + (state.settings.theme === 'dark' ? ' on' : '') + '" data-action="set-theme" data-theme="dark">' + esc(t('dark')) + '</button>' +
+  '</div></div>';
+  h += '<div class="setrow"><h3>' + esc(t('lang')) + '</h3><div class="seg">' +
+    '<button type="button" class="btn' + (state.settings.lang === 'my' ? ' on' : '') + '" data-action="set-lang" data-lang="my">' + esc(t('myanmar')) + '</button>' +
+    '<button type="button" class="btn' + (state.settings.lang === 'en' ? ' on' : '') + '" data-action="set-lang" data-lang="en">' + esc(t('english')) + '</button>' +
+  '</div></div>';
+  h += '<div class="setrow"><h3>' + esc(t('editSetup')) + '</h3>' +
+    '<div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
+    '<input id="editBal" type="number" inputmode="numeric" min="0" value="' + (state.setup.balance || '') + '"></div>' +
+    '<div class="field"><label>' + esc(t('paydayDay')) + '</label>' +
+    '<input id="editPay" type="number" inputmode="numeric" min="1" max="31" value="' + (state.setup.paydayDay || 1) + '"></div>' +
+    '<div class="field" style="margin-bottom:0"><label>' + esc(t('dailyTarget')) + ' (' + esc(t('kyat')) + ' ' + esc(t('perDay')) + ')</label>' +
+    '<input id="editTgt" type="number" inputmode="numeric" min="0" value="' + (state.setup.dailyTarget || '') + '"></div>' +
+    '<div class="rowbtns"><button type="button" class="btn primary" data-action="save-setup">' + esc(t('saveSetup')) + '</button></div></div>';
+  h += '<div class="setrow"><h3>' + esc(t('backup')) + '</h3>' +
+    '<div class="rowbtns" style="margin-top:0">' +
+    '<button type="button" class="btn" data-action="export-backup">' + icon('download') + ' ' + esc(t('exportBackup')) + '</button>' +
+    '<button type="button" class="btn" data-action="import-pick">' + icon('upload') + ' ' + esc(t('importBackup')) + '</button></div>' +
+    '<input type="file" id="importFile" accept=".json,application/json" style="display:none"></div>';
+  h += '<div class="setrow"><div class="rowbtns" style="margin-top:0"><button type="button" class="btn danger" data-action="reset-data">' +
+    esc(resetArmed ? t('resetConfirm') : t('reset')) + '</button></div></div>';
+  h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  return h;
+}
+
+/* ---------------- render + navigation ---------------- */
+function render(){
+  applyTheme();
+  var root = el('app');
+  if (!root) return;
+  /* Preserve the category chips' horizontal scroll position across the
+     re-render, so tapping a chip does not snap the row back to the start. */
+  var chipScroll = 0;
+  var cr0 = el('chipRow');
+  if (cr0 && typeof cr0.scrollLeft === 'number') chipScroll = cr0.scrollLeft;
+  var key = view.name + '|' + (view.iso || '');
+  var html;
+  if (!state.setup.done) html = setupViewHTML();
+  else if (view.name === 'home') html = homeViewHTML();
+  else if (view.name === 'settings') html = settingsViewHTML();
+  else html = dayViewHTML();
+  html += tabbarHTML();
+  root.innerHTML = html;
+  var cr1 = el('chipRow');
+  if (cr1 && typeof cr1.scrollLeft === 'number') cr1.scrollLeft = chipScroll;
+  if (editingName){
+    var ni = el('nameInput');
+    if (ni && ni.focus){ ni.focus(); if (ni.select) ni.select(); }
+  }
+  if (key !== lastViewKey){
+    lastViewKey = key;
+    if (root.classList){
+      root.classList.remove('view-enter');
+      void root.offsetWidth;
+      root.classList.add('view-enter');
+    }
+  }
+  if (view.name === 'home' && state.setup.done) animateCountUps();
+}
+function setHash(hash, push){
+  if (typeof window === 'undefined' || !window.history) return;
+  try {
+    if (push) window.history.pushState(null, '', hash);
+    else window.history.replaceState(null, '', hash);
+  } catch (e) {}
+}
+function goHome(push){
+  dayDirty = false;
+  view = { name:'home', iso: clampISO(todayISO()) };
+  setHash('#home', push !== false);
+  render();
+}
+function goToDay(iso, push){
+  dayDirty = false;
+  view = { name:'day', iso: clampISO(iso) };
+  setHash('#day=' + view.iso, push !== false);
+  render();
+}
+function goToSettings(push){
+  dayDirty = false;
+  view = { name:'settings', iso: view.iso };
+  setHash('#settings', push !== false);
+  render();
+}
+function onHashChange(){
+  dayDirty = false;
+  var hash = (typeof window !== 'undefined' && window.location) ? window.location.hash : '';
+  if (hash === '#settings') view = { name:'settings', iso: view.iso };
+  else if (hash === '#home') view = { name:'home', iso: clampISO(todayISO()) };
+  else {
+    var m = hash.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
+    view = { name:'day', iso: m ? clampISO(m[1]) : clampISO(todayISO()) };
+  }
+  render();
+}
+function focusAmount(kind, idx){
+  if (typeof document === 'undefined' || !document.querySelector) return;
+  var inp = document.querySelector('input[' + kind + '="' + idx + '"]');
+  if (inp) inp.focus();
+}
+/* Full re-render that keeps focus in the amount field being typed in. */
+function updateTotalsOnly(){
+  if (typeof document === 'undefined') return;
+  var root = el('app');
+  if (!root) return;
+  var active = document.activeElement;
+  var key = null, kind = null;
+  if (active && active.getAttribute){
+    if (active.getAttribute('data-entry-amount') !== null){ key = active.getAttribute('data-entry-amount'); kind = 'data-entry-amount'; }
+    else if (active.getAttribute('data-income-amount') !== null){ key = active.getAttribute('data-income-amount'); kind = 'data-income-amount'; }
+  }
+  render();
+  if (key !== null && kind && root.querySelector){
+    var inputs = root.querySelectorAll('input[' + kind + '="' + key + '"]');
+    if (inputs && inputs.length){
+      inputs[0].focus();
+      var v = inputs[0].value; inputs[0].value = ''; inputs[0].value = v;
+    }
+  }
+}
+
+/* ---------------- events ---------------- */
+function handleClick(e){
+  var target = e.target;
+  while (target && target !== document.body && !(target.getAttribute && target.getAttribute('data-action'))) target = target.parentNode;
+  if (!target || !target.getAttribute) return;
+  var action = target.getAttribute('data-action');
+  var iso = view.iso;
+  switch (action){
+    case 'tab-home': goHome(true); break;
+    case 'tab-day': goToDay(todayISO(), true); break;
+    case 'tab-settings': goToSettings(true); break;
+    case 'fab-add': goToDay(todayISO(), true); break;
+    case 'toggle-balance': toggleBalance(); break;
+    case 'nav-prev': goToDay(isoAdd(iso, -1), true); break;
+    case 'nav-next': goToDay(isoAdd(iso, 1), true); break;
+    case 'goto-date': {
+      var g = target.getAttribute('data-iso');
+      searchText = ''; searchOpen = false;
+      goToDay(g, true); break;
+    }
+    case 'add-cat': {
+      var day = getDay(iso);
+      day.entries.push({ cat: target.getAttribute('data-cat') || 'other', note:'', amount:0 });
+      dayDirty = true;
+      persist(); render();
+      focusAmount('data-entry-amount', day.entries.length - 1);
+      break;
+    }
+    case 'add-income': {
+      var day2 = getDay(iso);
+      day2.income.push({ amount:0, note:'' });
+      dayDirty = true;
+      persist(); render();
+      focusAmount('data-income-amount', day2.income.length - 1);
+      break;
+    }
+    case 'del-entry': {
+      getDay(iso).entries.splice(+target.getAttribute('data-idx'), 1);
+      dayDirty = true;
+      persist(); render(); break;
+    }
+    case 'del-income': {
+      getDay(iso).income.splice(+target.getAttribute('data-idx'), 1);
+      dayDirty = true;
+      persist(); render(); break;
+    }
+    case 'save-day':
+      dayDirty = false;
+      persist();
+      showToast(t('saved'));
+      render();
+      break;
+    case 'edit-name':
+      editingName = true;
+      nameDraft = (state.profile && state.profile.name) || '';
+      render();
+      break;
+    case 'save-name': {
+      var ni = el('nameInput');
+      var nm = (ni ? String(ni.value || '') : nameDraft).trim().slice(0, 24);
+      if (!state.profile) state.profile = { name:'', photo:'' };
+      state.profile.name = nm;
+      editingName = false;
+      persist(); render();
+      break;
+    }
+    case 'pick-photo': {
+      var pi = el('photoInput');
+      if (pi && pi.click) pi.click();
+      break;
+    }
+    case 'theme-toggle':
+      state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
+      persist(); render(); break;
+    case 'lang-toggle':
+      state.settings.lang = state.settings.lang === 'my' ? 'en' : 'my';
+      persist(); render(); break;
+    case 'set-theme':
+      state.settings.theme = target.getAttribute('data-theme');
+      persist(); render(); break;
+    case 'set-lang':
+      state.settings.lang = target.getAttribute('data-lang');
+      persist(); render(); break;
+    case 'use-suggest': {
+      if (!setupDraft) break;
+      setupDraft.dailyTarget = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
+      var ti = el('setupTgt');
+      if (ti) ti.value = setupDraft.dailyTarget;
+      break;
+    }
+    case 'setup-start': {
+      var s = readSetupInputs();
+      if (s.paydayDay < 1 || s.paydayDay > 31){ showToast(t('paydayRange')); break; }
+      state.setup.balance = s.balance;
+      state.setup.paydayDay = s.paydayDay;
+      state.setup.dailyTarget = s.dailyTarget;
+      state.setup.done = true;
+      setupDraft = null;
+      persist();
+      goHome(false);
+      break;
+    }
+    case 'setup-skip':
+      state.setup = { done:true, balance:0, paydayDay:1, dailyTarget:0 };
+      setupDraft = null;
+      persist();
+      goHome(false);
+      break;
+    case 'save-setup': {
+      var b = el('editBal'), p = el('editPay'), tg = el('editTgt');
+      var npd = Math.round(Number(p ? p.value : 1) || 1);
+      if (npd < 1 || npd > 31){ showToast(t('paydayRange')); break; }
+      state.setup.balance = Math.max(0, Math.round(Number(b ? b.value : 0) || 0));
+      state.setup.paydayDay = npd;
+      state.setup.dailyTarget = Math.max(0, Math.round(Number(tg ? tg.value : 0) || 0));
+      persist();
+      showToast(t('saved'));
+      render();
+      break;
+    }
+    case 'export-backup':
+      exportBackup();
+      break;
+    case 'import-pick': {
+      var fi = el('importFile');
+      if (fi && fi.click) fi.click();
+      break;
+    }
+    case 'reset-data': {
+      if (!resetArmed){
+        resetArmed = true;
+        render();
+        if (resetTimer) clearTimeout(resetTimer);
+        resetTimer = setTimeout(function(){ resetArmed = false; }, 5000);
+      } else {
+        if (resetTimer) clearTimeout(resetTimer);
+        resetArmed = false;
+        state = defaultState();
+        setupDraft = null;
+        dayDirty = false;
+        editingName = false;
+        persist();
+        view = { name:'setup', iso: clampISO(todayISO()) };
+        showToast(t('resetDone'));
+        render();
+      }
+      break;
+    }
+  }
+}
+/* Backup export: a real file, never raw text on screen.
+   APK: the native shell (AndroidBridge) writes it into Downloads.
+   Browser/PWA: a normal file download. Last resort: clipboard copy. */
+function exportBackup(){
+  var json = exportState();
+  if (typeof window !== 'undefined' && window.AndroidBridge && window.AndroidBridge.saveBackup){
+    try { window.AndroidBridge.saveBackup(json); showToast(t('backupSaved')); return; } catch (e) {}
+  }
+  if (typeof document !== 'undefined' && typeof Blob !== 'undefined' &&
+      typeof URL !== 'undefined' && URL.createObjectURL){
+    try {
+      var blob = new Blob([json], { type:'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'sir-khant-finance-backup.json';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      showToast(t('backupSaved'));
+      return;
+    } catch (err) {}
+  }
+  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(json).then(function(){ showToast(t('backupSaved')); },
+      function(){ showToast(t('importFail')); });
+  } else { showToast(t('importFail')); }
+}
+/* Downscale a picked photo to max 256px (JPEG) so the profile picture
+   stays small in localStorage. Calls done(dataUrl) or done(null). */
+function downscalePhoto(dataUrl, done){
+  if (typeof Image === 'undefined' || typeof document === 'undefined' || !document.createElement){ done(dataUrl); return; }
+  var img = new Image();
+  img.onload = function(){
+    try {
+      var max = 256, w = img.width, h = img.height;
+      if (!w || !h || (w <= max && h <= max)){ done(dataUrl); return; }
+      var s = Math.min(max / w, max / h);
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(w * s));
+      cv.height = Math.max(1, Math.round(h * s));
+      var ctx = cv.getContext ? cv.getContext('2d') : null;
+      if (!ctx){ done(dataUrl); return; }
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      done(cv.toDataURL('image/jpeg', 0.8));
+    } catch (e){ done(dataUrl); }
+  };
+  img.onerror = function(){ done(null); };
+  img.src = dataUrl;
+}
+function handleChange(e){
+  var target = e.target;
+  if (!target || !target.files) return;
+  if (target.id === 'photoInput'){
+    var f = target.files[0];
+    if (!f) return;
+    if (typeof FileReader === 'undefined'){ showToast(t('photoFail')); return; }
+    var rd = new FileReader();
+    rd.onload = function(){
+      downscalePhoto(String(rd.result || ''), function(url){
+        if (!url){ showToast(t('photoFail')); return; }
+        if (!state.profile) state.profile = { name:'', photo:'' };
+        state.profile.photo = url;
+        persist(); render();
+      });
+    };
+    rd.onerror = function(){ showToast(t('photoFail')); };
+    rd.readAsDataURL(f);
+    return;
+  }
+  if (target.id === 'importFile'){
+    var bf = target.files[0];
+    if (!bf) return;
+    if (typeof FileReader === 'undefined'){ showToast(t('importFail')); return; }
+    var brd = new FileReader();
+    brd.onload = function(){
+      var r = importState(String(brd.result || ''));
+      showToast(r.ok ? t('importDone') : t('importFail'));
+      if (r.ok){ setupDraft = null; dayDirty = false; goHome(false); }
+    };
+    brd.onerror = function(){ showToast(t('importFail')); };
+    brd.readAsText(bf);
+  }
+}
+function handleKeyDown(e){
+  if (!e || !e.target) return;
+  if (e.key === 'Enter' && e.target.id === 'nameInput'){
+    var ni = el('nameInput');
+    var nm = (ni ? String(ni.value || '') : nameDraft).trim().slice(0, 24);
+    if (!state.profile) state.profile = { name:'', photo:'' };
+    state.profile.name = nm;
+    editingName = false;
+    persist(); render();
+  }
+}
+function updateSuggestChip(){
+  var chip = el('suggestChip');
+  if (!chip || !setupDraft) return;
+  var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
+  chip.textContent = t('suggestTarget') + ': ' + fmt(sug) + ' ' + t('kyat') + t('perDay');
+}
+function handleInput(e){
+  var target = e.target;
+  if (!target || !target.getAttribute) return;
+  var iso = view.iso;
+  var day = getDay(iso);
+  if (target.id === 'searchInput'){
+    searchText = target.value;
+    searchOpen = true;
+    /* Impossible day (e.g. 32/11): alert which day the month ends on.
+       Deduped so typing does not spam the same toast. */
+    var derr = dateInputError(target.value);
+    var dkey = derr ? (derr.month + '/' + derr.maxDay) : '';
+    if (derr && dkey !== lastDateErrKey){
+      lastDateErrKey = dkey;
+      var mn = state.settings.lang === 'my' ? MONTHS_MY[derr.month - 1] : MONTHS_FULL_EN[derr.month - 1];
+      showToast(t('monthDays').replace('{m}', mn).replace('{x}', String(derr.maxDay)));
+    } else if (!derr) lastDateErrKey = '';
+    render();
+    var si = el('searchInput');
+    if (si){ si.focus(); var v = si.value; si.value = ''; si.value = v; }
+    return;
+  }
+  if (target.id === 'setupBal' || target.id === 'setupPay' || target.id === 'setupTgt'){
+    if (!setupDraft) setupDraft = { balance:'', paydayDay:1, dailyTarget:'' };
+    if (target.id === 'setupBal') setupDraft.balance = target.value;
+    if (target.id === 'setupPay') setupDraft.paydayDay = target.value;
+    if (target.id === 'setupTgt') setupDraft.dailyTarget = target.value;
+    updateSuggestChip();
+    return;
+  }
+  if (target.id === 'nameInput'){
+    nameDraft = target.value;
+    return;
+  }
+  var ea = target.getAttribute('data-entry-amount');
+  if (ea !== null){
+    day.entries[+ea].amount = Math.max(0, Math.round(Number(target.value) || 0));
+    dayDirty = true;
+    persist(); updateTotalsOnly(); return;
+  }
+  var en = target.getAttribute('data-entry-note');
+  if (en !== null){
+    day.entries[+en].note = target.value;
+    dayDirty = true;
+    persist(); return;
+  }
+  var ia = target.getAttribute('data-income-amount');
+  if (ia !== null){
+    day.income[+ia].amount = Math.max(0, Math.round(Number(target.value) || 0));
+    dayDirty = true;
+    persist(); updateTotalsOnly(); return;
+  }
+  var inn = target.getAttribute('data-income-note');
+  if (inn !== null){
+    day.income[+inn].note = target.value;
+    dayDirty = true;
+    persist(); return;
+  }
+}
+
+/* ---------------- init ---------------- */
+function init(){
+  loadState();
+  if (!state.setup.done){
+    view = { name:'setup', iso: clampISO(todayISO()) };
+  } else if (typeof window !== 'undefined' && window.location && window.location.hash){
+    var hash = window.location.hash;
+    if (hash === '#settings'){ view = { name:'settings', iso: clampISO(todayISO()) }; }
+    else if (hash === '#home'){ view = { name:'home', iso: clampISO(todayISO()) }; }
+    else {
+      var m = hash.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
+      view = { name:'day', iso: m ? clampISO(m[1]) : clampISO(todayISO()) };
+    }
+  } else {
+    view = { name:'home', iso: clampISO(todayISO()) };
+  }
+  setHash(view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
+  render();
+  if (typeof document !== 'undefined'){
+    document.addEventListener('click', handleClick);
+    document.addEventListener('input', handleInput);
+    document.addEventListener('change', handleChange);
+    document.addEventListener('keydown', handleKeyDown);
+    if (typeof window !== 'undefined') window.addEventListener('hashchange', onHashChange);
+  }
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator &&
+      typeof location !== 'undefined' && location.protocol && location.protocol.indexOf('http') === 0){
+    try { navigator.serviceWorker.register('sw.js').catch(function(){}); } catch (e) {}
+  }
+}
+if (typeof document !== 'undefined' && document.readyState !== 'loading') init();
+else if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', init);
+
+/* Test seam (Node): expose pure logic + state ops. Harmless in the WebView. */
+if (typeof module !== 'undefined' && module.exports){
+  module.exports = {
+    parseDateInput: parseDateInput, dateInputError: dateInputError, dateSuggestions: dateSuggestions,
+    dayExpense: dayExpense, dayIncome: dayIncome, totalsAll: totalsAll,
+    remainingAll: remainingAll, monthTotals: monthTotals, monthBudget: monthBudget,
+    last7: last7, recentActivity: recentActivity,
+    daysUntilPayday: daysUntilPayday, nextPaydayISO: nextPaydayISO, suggestTarget: suggestTarget,
+    donutSegments: donutSegments, exportState: exportState, importState: importState,
+    getDay: getDay, blankDay: blankDay, hasData: hasData,
+    loadState: loadState, persist: persist,
+    goHome: goHome, goToDay: goToDay, goToSettings: goToSettings, onHashChange: onHashChange,
+    render: render, init: init, handleClick: handleClick, handleInput: handleInput,
+    handleChange: handleChange, handleKeyDown: handleKeyDown, exportBackup: exportBackup,
+    profileName: profileName, profilePhoto: profilePhoto,
+    get dayDirty(){ return dayDirty; },
+    get editingName(){ return editingName; },
+    hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
+    formatDateLong: formatDateLong, formatDateShort: formatDateShort, monthLabel: monthLabel, daysInMonth: daysInMonth,
+    clampISO: clampISO, isoAdd: isoAdd, isToday: isToday, todayISO: todayISO,
+    get state(){ return state; }, set state(s){ state = s; },
+    get view(){ return view; }, set view(v){ view = v; },
+    get balanceHidden(){ return balanceHidden; },
+    get setupDraft(){ return setupDraft; }, set setupDraft(v){ setupDraft = v; },
+    setToday: function(iso){ _todayOverride = iso; },
+    setSearch: function(s, open){ searchText = s; searchOpen = open; },
+    CATS: CATS, DONUT_C: DONUT_C, APP_NAME: APP_NAME, APP_VERSION: APP_VERSION
+  };
+}
+</script>
+</body>
+</html>
