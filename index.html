@@ -302,7 +302,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.6';
+var APP_VERSION = '1.0.7';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -929,6 +929,12 @@ function positionTour(){
   var sel = tourStep === 0 ? '[data-action="pick-photo"]' : '[data-action="edit-name"]';
   var target = (typeof document !== 'undefined' && document.querySelector) ? document.querySelector(sel) : null;
   var rect = (target && target.getBoundingClientRect) ? target.getBoundingClientRect() : null;
+  /* If the target is scrolled off the top, pull the page back up and
+     re-measure so the ring lands on the profile, not off-screen. */
+  if (rect && rect.top < 0 && typeof window !== 'undefined' && window.scrollTo){
+    window.scrollTo(0, 0);
+    rect = target.getBoundingClientRect();
+  }
   if (!rect){ ring.style.display = 'none'; tip.style.top = '110px'; return; }
   var pad = 6;
   ring.style.display = 'block';
@@ -979,7 +985,9 @@ function tabbarHTML(){
 function setupViewHTML(){
   if (!setupDraft) setupDraft = {
     balance: state.setup.balance || '',
-    paydayDay: state.setup.paydayDay || 1,
+    /* Payday starts empty like the other fields: a pre-filled 1 would let
+       the user "complete" setup without ever choosing a payday. */
+    paydayDay: '',
     dailyTarget: state.setup.dailyTarget || ''
   };
   var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
@@ -999,6 +1007,7 @@ function setupViewHTML(){
     '<span class="agree-txt">' + esc(t('agreeLabel')) + '</span></button>';
   h += '<div class="policyrow"><button type="button" class="policylink" data-action="open-policy">' + esc(t('privacyPolicy')) + '</button></div>';
   h += '<button type="button" class="btn primary big" data-action="setup-start">' + esc(t('start')) + '</button>';
+  h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
   return h;
 }
 /* Privacy Policy modal (setup + settings). The policy text lives in I18N
@@ -1236,6 +1245,10 @@ function render(){
   if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
   if (policyOpen) html += policyModalHTML();
   root.innerHTML = html;
+  /* New view: start at the top of the page. Without this, tapping Start
+     low on the long setup form leaves home scrolled down, so the tour
+     ring lands off-screen above the profile header. */
+  if (key !== lastViewKey && typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
   positionTour();
   var cr1 = el('chipRow');
   if (cr1 && typeof cr1.scrollLeft === 'number') cr1.scrollLeft = chipScroll;
@@ -1437,7 +1450,9 @@ function handleClick(e){
       persist(); render(); swapView(); break;
     case 'use-suggest': {
       if (!setupDraft) break;
-      setupDraft.dailyTarget = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
+      var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
+      if (sug <= 0) break;
+      setupDraft.dailyTarget = sug;
       var ti = el('setupTgt');
       if (ti) ti.value = setupDraft.dailyTarget;
       break;
