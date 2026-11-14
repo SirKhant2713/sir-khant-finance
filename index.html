@@ -245,6 +245,18 @@ table.ledger .note-in{
 .tour-btns{display:flex; gap:10px; margin-top:14px;}
 .tour-btns .btn{flex:1; text-align:center;}
 @keyframes tourPulse{0%{box-shadow:0 0 0 4px rgba(255,255,255,.35);}100%{box-shadow:0 0 0 16px rgba(255,255,255,0);}}
+/* ---------- setup agreement + policy modal ---------- */
+.agree-row{display:flex; align-items:center; gap:10px; width:100%; background:none; border:none; padding:10px 2px; text-align:left; font-family:inherit;}
+.agree-check{width:24px; height:24px; border-radius:7px; border:2px solid var(--line-strong); background:var(--card); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; color:#f7f3ea;}
+.agree-check.on{background:var(--green); border-color:var(--green);}
+.agree-check svg{width:15px; height:15px;}
+.agree-txt{font-size:14.5px; color:var(--ink); line-height:1.4;}
+.policyrow{text-align:center; margin:2px 0 14px;}
+.policylink{background:none; border:none; padding:2px 0; font-size:13.5px; color:var(--green); text-decoration:underline; cursor:pointer; font-family:inherit;}
+.modal-overlay{position:fixed; inset:0; background:rgba(20,16,10,.55); z-index:95; display:flex; align-items:center; justify-content:center; padding:24px;}
+.modal-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:20px; max-width:420px; width:100%; max-height:80vh; display:flex; flex-direction:column; animation:fadeUp .3s ease both;}
+.modal-card h3{margin:0 0 12px; font-size:17px; color:var(--green-ink);}
+.modal-body{font-size:14px; line-height:1.7; color:var(--ink-soft); white-space:pre-line; overflow-y:auto; margin-bottom:16px;}
 .setrow h3{margin:0 0 10px; font-size:15px; color:var(--green-ink);}
 .seg{display:flex; gap:8px;}
 .seg .btn.on{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
@@ -290,7 +302,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.5';
+var APP_VERSION = '1.0.6';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -362,7 +374,7 @@ var I18N = {
     theme:'အရောင်', lang:'ဘာသာစကား', dark:'အမှောင်', light:'အလင်း',
     myanmar:'မြန်မာ', english:'English',
     setupTitle:'စတင်အသုံးပြုမယ်', setupSub:'ကိုယ့်ငွေစာရင်း ကိုယ်တိုင် စီမံမယ်',
-    startBalance:'အစ လက်ကျန်ငွေ', paydayDay:'လစာထုတ်ရက် (လထဲက ရက်စွဲ)',
+    startBalance:'လက်ရှိ သင့်လက်ထဲ ကျန်ငွေ', paydayDay:'လစာထုတ်ရက် (လထဲက ရက်စွဲ)',
     dailyTarget:'တနေ့ သုံးမယ့် ပမာဏ', suggestTarget:'အကြံပြုချက်',
     start:'စတင်မယ်', skip:'ကျော်မယ်', editSetup:'အစ အချက်အလက်များ ပြင်မယ်',
     saveSetup:'သိမ်းမယ်', saved:'သိမ်းပြီးပါပြီ',
@@ -377,6 +389,11 @@ var I18N = {
     budgetWhyText:'တရက်ပျှမ်းမျှ {t} လို့ သတ်မှတ်ထားတာကြောင့်၊ ဒီလ ရက် {d} ရက် × {t} = {b} ဖြစ်ပါတယ်။ ဒီလကုန်အထိ သုံးနိုင်တဲ့ စုစုပေါင်းပါ။',
     tourPhoto:'Profile ပုံ ပြောင်းမလား?', tourName:'Username ပြောင်းမလား?',
     tourNow:'အခုလုပ်မယ်', tourLater:'နောက်မှ',
+    fillFirst:'ပေးထားသော အချက်အလက်များ အား အရင် ဖြည့်ပါ',
+    agreeFirst:'ရှေ့ဆက်ရန် သဘောတူညီချက်ကို အရင် လက်ခံပါ',
+    agreeLabel:'သဘောတူညီချက်ကို လက်ခံပါတယ်',
+    privacyPolicy:'Privacy Policy', close:'ပိတ်မယ်',
+    policyText:'Sir Khant Finance သည် သုံးစွဲသူများ၏ ကိုယ်ရေးအချက်အလက်များကို မည်သို့မျှ ရယူခြင်း၊ သိမ်းဆည်းခြင်း၊ မျှဝေခြင်း မပြုပါ။\n\nသင် ထည့်သွင်းသော ငွေကြေးမှတ်တမ်းများအားလုံးသည် သင့်ဖုန်းထဲတွင်သာ သိမ်းဆည်းထားပြီး အင်တာနက်သို့ ပေးပို့ခြင်း လုံးဝ မရှိပါ။\n\nဤအက်ပ်ကို သုံးစွဲသူများ၏ နေ့စဉ် ငွေကြေးအချက်အလက်များကို စနစ်တကျ စီမံခန့်ခွဲနိုင်စေရန် ရည်ရွယ်၍ ထုတ်လုပ်ထားခြင်း ဖြစ်ပါသည်။\n\nဤသဘောတူညီချက်ကို လက်ခံပါက "သဘောတူညီချက်ကို လက်ခံပါတယ်" ကို အမှန်ခြစ်ပြီး ရှေ့ဆက်နိုင်ပါသည်။\n\nထုတ်လုပ်သူ — Min Khant',
     reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
     resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
     overBudget:'သတ်မှတ်ထားတာထက် {x} ကျပ် ပိုသုံးထားသည်။',
@@ -398,7 +415,7 @@ var I18N = {
     theme:'Theme', lang:'Language', dark:'Dark', light:'Light',
     myanmar:'Myanmar', english:'English',
     setupTitle:'Get started', setupSub:'Your money, your records',
-    startBalance:'Starting balance', paydayDay:'Payday (day of month)',
+    startBalance:'Money in hand right now', paydayDay:'Payday (day of month)',
     dailyTarget:'Daily spending target', suggestTarget:'Suggested',
     start:'Start', skip:'Skip', editSetup:'Edit starting details',
     saveSetup:'Save', saved:'Saved',
@@ -413,6 +430,11 @@ var I18N = {
     budgetWhyText:'Your daily average is set to {t}, so {d} days this month × {t} = {b}. That is your total budget until the end of this month.',
     tourPhoto:'Change your profile photo?', tourName:'Change your username?',
     tourNow:'Do it now', tourLater:'Later',
+    fillFirst:'Please fill in the information first',
+    agreeFirst:'Please accept the agreement to continue',
+    agreeLabel:'I accept the agreement',
+    privacyPolicy:'Privacy Policy', close:'Close',
+    policyText:'Sir Khant Finance does not collect, store, or share any of your personal information.\n\nAll the financial records you enter are stored only on your device and are never sent over the internet.\n\nThis app is made to help you manage your daily finances in an organized way.\n\nIf you agree to these terms, check "I accept the agreement" to continue.\n\nDeveloped by Min Khant',
     reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
     resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
     overBudget:'{x} MMK over the monthly budget.',
@@ -790,6 +812,10 @@ var dayDirty = false;
 var tourStep = null;
 /* Budget explainer: whether the "why is the total this?" box is open. */
 var budgetWhyOpen = false;
+/* Setup gate: the agreement checkbox (unchecked until the user taps it)
+   and the Privacy Policy modal. Neither is persisted. */
+var agreeChecked = false;
+var policyOpen = false;
 function profileName(){ return (state.profile && state.profile.name) ? state.profile.name : 'username'; }
 function profilePhoto(){ return (state.profile && state.profile.photo) ? state.profile.photo : ''; }
 
@@ -968,9 +994,22 @@ function setupViewHTML(){
     '<input id="setupTgt" type="number" inputmode="numeric" min="0" value="' + esc(setupDraft.dailyTarget) + '">' +
     '<button type="button" class="suggest-chip" id="suggestChip" data-action="use-suggest">' +
     esc(t('suggestTarget')) + ': ' + fmt(sug) + ' ' + esc(t('kyat')) + esc(t('perDay')) + '</button></div>';
+  h += '<button type="button" class="agree-row" data-action="toggle-agree">' +
+    '<span class="agree-check' + (agreeChecked ? ' on' : '') + '">' + (agreeChecked ? icon('check') : '') + '</span>' +
+    '<span class="agree-txt">' + esc(t('agreeLabel')) + '</span></button>';
+  h += '<div class="policyrow"><button type="button" class="policylink" data-action="open-policy">' + esc(t('privacyPolicy')) + '</button></div>';
   h += '<button type="button" class="btn primary big" data-action="setup-start">' + esc(t('start')) + '</button>';
-  h += '<div style="text-align:center;margin-top:12px"><button type="button" class="btn ghost" data-action="setup-skip">' + esc(t('skip')) + '</button></div>';
   return h;
+}
+/* Privacy Policy modal (setup + settings). The policy text lives in I18N
+   so it follows the app language. */
+function policyModalHTML(){
+  if (!policyOpen) return '';
+  return '<div class="modal-overlay" id="policyModal">' +
+    '<div class="modal-card"><h3>' + esc(t('privacyPolicy')) + '</h3>' +
+    '<div class="modal-body">' + esc(t('policyText')) + '</div>' +
+    '<button type="button" class="btn primary big" data-action="close-policy">' + esc(t('close')) + '</button>' +
+    '</div></div>';
 }
 function readSetupInputs(){
   var bal = el('setupBal'), pay = el('setupPay'), tgt = el('setupTgt');
@@ -1168,6 +1207,7 @@ function settingsViewHTML(){
     '<button type="button" class="btn" data-action="export-backup">' + icon('download') + ' ' + esc(t('exportBackup')) + '</button>' +
     '<button type="button" class="btn" data-action="import-pick">' + icon('upload') + ' ' + esc(t('importBackup')) + '</button></div>' +
     '<input type="file" id="importFile" accept=".json,application/json" style="display:none"></div>';
+  h += '<div class="setrow"><div class="rowbtns" style="margin-top:0"><button type="button" class="btn" data-action="open-policy">' + esc(t('privacyPolicy')) + '</button></div></div>';
   h += '<div class="setrow"><div class="rowbtns" style="margin-top:0"><button type="button" class="btn danger" data-action="reset-data">' +
     esc(resetArmed ? t('resetConfirm') : t('reset')) + '</button></div></div>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
@@ -1194,6 +1234,7 @@ function render(){
   else html = dayViewHTML();
   html += tabbarHTML();
   if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
+  if (policyOpen) html += policyModalHTML();
   root.innerHTML = html;
   positionTour();
   var cr1 = el('chipRow');
@@ -1370,6 +1411,18 @@ function handleClick(e){
       if (tourStep === 0){ tourStep = 1; render(); }
       else endTour();
       break;
+    case 'toggle-agree':
+      agreeChecked = !agreeChecked;
+      render();
+      break;
+    case 'open-policy':
+      policyOpen = true;
+      render();
+      break;
+    case 'close-policy':
+      policyOpen = false;
+      render();
+      break;
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
       persist(); render(); swapView(); break;
@@ -1390,23 +1443,27 @@ function handleClick(e){
       break;
     }
     case 'setup-start': {
+      /* All three fields are required (no Skip), and the agreement box
+         must be checked. Empty means the input was never filled in —
+         a typed 0 counts as filled. */
+      var b0 = el('setupBal'), p0 = el('setupPay'), t0 = el('setupTgt');
+      var bEmpty = !b0 || String(b0.value || '').trim() === '';
+      var pEmpty = !p0 || String(p0.value || '').trim() === '';
+      var tEmpty = !t0 || String(t0.value || '').trim() === '';
+      if (bEmpty || pEmpty || tEmpty){ showToast(t('fillFirst')); break; }
       var s = readSetupInputs();
       if (s.paydayDay < 1 || s.paydayDay > 31){ showToast(t('paydayRange')); break; }
+      if (!agreeChecked){ showToast(t('agreeFirst')); break; }
       state.setup.balance = s.balance;
       state.setup.paydayDay = s.paydayDay;
       state.setup.dailyTarget = s.dailyTarget;
       state.setup.done = true;
       setupDraft = null;
+      agreeChecked = false;
       persist();
       goHome(false);
       break;
     }
-    case 'setup-skip':
-      state.setup = { done:true, balance:0, paydayDay:1, dailyTarget:0 };
-      setupDraft = null;
-      persist();
-      goHome(false);
-      break;
     case 'save-setup': {
       var b = el('editBal'), p = el('editPay'), tg = el('editTgt');
       var npd = Math.round(Number(p ? p.value : 1) || 1);
@@ -1442,6 +1499,8 @@ function handleClick(e){
         editingName = false;
         tourStep = null;
         budgetWhyOpen = false;
+        agreeChecked = false;
+        policyOpen = false;
         persist();
         view = { name:'setup', iso: clampISO(todayISO()) };
         showToast(t('resetDone'));
@@ -1664,6 +1723,8 @@ if (typeof module !== 'undefined' && module.exports){
     get tourStep(){ return tourStep; },
     setTourStep: function(s){ tourStep = s; },
     get budgetWhyOpen(){ return budgetWhyOpen; },
+    get agreeChecked(){ return agreeChecked; },
+    get policyOpen(){ return policyOpen; },
     budgetWhyText: budgetWhyText, tourHTML: tourHTML, positionTour: positionTour,
     hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
     swapView: swapView,
