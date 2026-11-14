@@ -27,7 +27,7 @@
 :root{
   --paper:#f7f3ea; --card:#fffdf6; --ink:#26221a; --ink-soft:#6b6353;
   --line:#e5ddc9; --line-strong:#c9bfa4; --green:#1f4d2e; --green-soft:#e6ecdf;
-  --green-ink:#173a22; --green-fill:#2e7d4f; --warn:#8a5a1d; --warn-bg:#f6ecd8;
+  --green-ink:#173a22; --green-fill:#2e7d4f; --clay:#B85A30; --warn:#8a5a1d; --warn-bg:#f6ecd8;
   --danger:#9a3226; --input-bg:#ffffff; --chip-bg:#f1ebdb;
   --shadow:0 1px 3px rgba(38,34,26,.07), 0 4px 14px rgba(38,34,26,.05);
   --shadow-lg:0 2px 6px rgba(38,34,26,.08), 0 10px 28px rgba(38,34,26,.09);
@@ -36,7 +36,7 @@
 [data-theme="dark"]{
   --paper:#1d1a15; --card:#27221a; --ink:#ece5d3; --ink-soft:#b3ab95;
   --line:#3d372a; --line-strong:#5d5542; --green:#6fae7e; --green-soft:#26351f;
-  --green-ink:#cfe3cf; --green-fill:#5da271; --warn:#d9a55c; --warn-bg:#3a2f1c;
+  --green-ink:#cfe3cf; --green-fill:#5da271; --clay:#D07A4A; --warn:#d9a55c; --warn-bg:#3a2f1c;
   --danger:#e08a7a; --input-bg:#1d1a15; --chip-bg:#332d21;
   --shadow:0 1px 3px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.3);
@@ -47,14 +47,15 @@ body{
   background:var(--paper); color:var(--ink);
   font-family:'Noto Sans Myanmar','Noto Sans',sans-serif;
   font-size:16px; line-height:1.55;
+  transition:background-color .45s ease, color .45s ease;
 }
 #app{max-width:560px; margin:0 auto; padding:14px 16px 110px;}
 @keyframes viewEnter{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
 .view-enter{animation:viewEnter .35s ease both;}
 @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 .fade-up{animation:fadeUp .4s ease both;}
-button{font-family:inherit; cursor:pointer; transition:transform .12s ease, background .15s ease, border-color .15s ease;}
-button:active{transform:scale(.96);}
+button{font-family:inherit; cursor:pointer; transition:transform .18s ease, background .2s ease, border-color .2s ease, box-shadow .18s ease, color .2s ease;}
+button:active{transform:translateY(-2px); box-shadow:0 8px 16px rgba(38,34,26,.18);}
 .btn{
   border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
   border-radius:10px; padding:9px 14px; font-size:14.5px; line-height:1.3; box-shadow:var(--shadow);
@@ -76,16 +77,17 @@ button:active{transform:scale(.96);}
 /* ---------- header (user profile) ---------- */
 header.top{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:4px 0 14px;}
 .profile{display:flex; align-items:center; gap:10px; min-width:0;}
-.avatar{width:42px; height:42px; border-radius:50%; border:1px solid var(--line-strong); background:var(--chip-bg); color:var(--ink-soft); overflow:hidden; flex-shrink:0; padding:0; box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center;}
+.avatar{width:42px; height:42px; border-radius:50%; border:1px solid var(--line-strong); background:var(--chip-bg); color:var(--ink-soft); overflow:hidden; flex-shrink:0; padding:0; box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center; transition:background-color .45s ease, border-color .45s ease;}
 .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
 .avatar svg{width:24px; height:24px;}
 .pname{font-weight:700; font-size:18px; letter-spacing:.2px; color:var(--green-ink); line-height:1.25; background:none; border:none; padding:4px 2px; text-align:left; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.pname-input{font-size:17px; font-weight:700; font-family:inherit; color:var(--ink); background:var(--input-bg); border:1px solid var(--green); border-radius:10px; padding:6px 10px; outline:none; width:150px;}
+.pname-input{font-size:17px; font-weight:700; font-family:inherit; color:var(--ink); background:var(--input-bg); border:1px solid var(--green); border-radius:10px; padding:6px 10px; outline:none; width:150px; transition:background-color .45s ease, color .45s ease;}
 .name-ok{width:34px; height:34px; border-radius:50%; border:none; background:var(--green); color:#f7f3ea; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
 .name-ok svg{width:18px; height:18px;}
 .topbtns{display:flex; gap:8px; flex-shrink:0;}
 /* ---------- cards ---------- */
-.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:16px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:16px; transition:background-color .45s ease, box-shadow .2s ease, transform .18s ease;}
+.card:active{transform:translateY(-2px); box-shadow:var(--shadow-lg);}
 .card h3{margin:0 0 12px; font-size:15px; color:var(--green-ink); display:flex; justify-content:space-between; align-items:baseline;}
 .card h3 .side{font-weight:400; font-size:13px; color:var(--ink-soft);}
 /* ---------- balance (3D flip card) ---------- */
@@ -96,6 +98,7 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
   background:var(--green); color:#f7f3ea; border-radius:var(--radius);
   padding:18px 18px 16px; cursor:pointer;
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  transition:background-color .45s ease;
 }
 [data-theme="dark"] .balance{background:#234d2f; color:#eef4ea;}
 .balance .top{display:flex; justify-content:space-between; align-items:center;}
@@ -119,7 +122,8 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .budgetrow{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-top:8px;}
 .budgetrow b{color:var(--ink);}
 .statgrid{display:flex; gap:10px; margin-top:14px;}
-.stat{flex:1; background:var(--green-soft); border-radius:10px; padding:10px 12px;}
+.stat{flex:1; background:var(--green-soft); border-radius:10px; padding:10px 12px; box-shadow:var(--shadow); transition:background-color .45s ease, box-shadow .2s ease, transform .18s ease;}
+.stat:active{transform:translateY(-2px); box-shadow:var(--shadow-lg);}
 .stat .v{font-size:17px; font-weight:700; color:var(--green-ink);}
 .stat .k{font-size:12px; color:var(--ink-soft);}
 .stat .s{font-size:12px; color:var(--ink-soft); margin-top:2px;}
@@ -163,6 +167,7 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .search input{
   width:100%; padding:11px 13px; font-size:15px; font-family:inherit; color:var(--ink);
   background:var(--input-bg); border:1px solid var(--line-strong); border-radius:12px; outline:none;
+  transition:background-color .45s ease, color .45s ease, border-color .2s ease;
 }
 .search input:focus{border-color:var(--green);}
 .suggest{
@@ -192,6 +197,7 @@ table.ledger .am{width:118px; text-align:right;}
 table.ledger .am input{
   width:100%; text-align:right; font-size:16px; font-weight:700; font-family:inherit; color:var(--ink);
   background:var(--input-bg); border:1px solid var(--line); border-radius:8px; padding:7px 9px; outline:none;
+  transition:background-color .45s ease, color .45s ease, border-color .2s ease;
 }
 table.ledger .am input:focus{border-color:var(--green);}
 table.ledger .am input.inc{color:var(--green-fill);}
@@ -216,6 +222,7 @@ table.ledger .note-in{
 .field input{
   width:100%; padding:12px 13px; font-size:17px; font-family:inherit; color:var(--ink);
   background:var(--input-bg); border:1px solid var(--line-strong); border-radius:12px; outline:none;
+  transition:background-color .45s ease, color .45s ease, border-color .2s ease;
 }
 .field input:focus{border-color:var(--green);}
 .suggest-chip{
@@ -223,7 +230,8 @@ table.ledger .note-in{
   background:var(--green-soft); border-radius:99px; padding:6px 12px; font-size:13.5px;
 }
 /* ---------- settings ---------- */
-.setrow{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:14px;}
+.setrow{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; margin-bottom:14px; transition:background-color .45s ease;}
+.hint{font-size:13.5px; color:var(--ink-soft); line-height:1.55;}
 .setrow h3{margin:0 0 10px; font-size:15px; color:var(--green-ink);}
 .seg{display:flex; gap:8px;}
 .seg .btn.on{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
@@ -243,16 +251,17 @@ table.ledger .note-in{
   background:var(--card); border-top:1px solid var(--line);
   display:flex; padding:8px 8px calc(8px + env(safe-area-inset-bottom));
   box-shadow:0 -2px 14px rgba(38,34,26,.06);
+  transition:background-color .45s ease, border-color .45s ease;
 }
 .tabbar .tab{
   flex:1; border:none; background:none; color:var(--ink-soft);
   display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0 2px; font-size:12px;
 }
 .tabbar .tab svg{width:22px; height:22px;}
-.tabbar .tab.on{color:var(--green-ink); font-weight:700;}
+.tabbar .tab.on{color:var(--clay); font-weight:700;}
 .fab{
   position:fixed; right:18px; bottom:calc(82px + env(safe-area-inset-bottom)); z-index:41;
-  width:56px; height:56px; border-radius:50%; border:none; background:var(--green); color:#f7f3ea;
+  width:56px; height:56px; border-radius:50%; border:none; background:var(--clay); color:#f7f3ea;
   font-size:30px; line-height:1; box-shadow:var(--shadow-lg);
   display:flex; align-items:center; justify-content:center;
 }
@@ -268,7 +277,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.3';
+var APP_VERSION = '1.0.4';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -350,6 +359,7 @@ var I18N = {
     editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
     monthTotal:'စုစုပေါင်း', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
     paydayRange:'လစာထုတ်ရက်က 1 ကနေ 31 အထိပဲ ရှိပါတယ်',
+    profileHint:'မိမိ name နှင့် Profile ပြောင်းရန် username နှင့် profile ပုံကို နှိပ်ပြီး ပြောင်းလဲနိုင်ပါတယ်',
     reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
     resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
     overBudget:'သတ်မှတ်ထားတာထက် {x} ကျပ် ပိုသုံးထားသည်။',
@@ -381,6 +391,7 @@ var I18N = {
     editNameHint:'Type your name', photoFail:'Could not load photo',
     monthTotal:'Total', monthDays:'{m} has only {x} days',
     paydayRange:'Payday must be between 1 and 31',
+    profileHint:'To change your name and profile photo, tap the username and profile photo above.',
     reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
     resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
     overBudget:'{x} MMK over the monthly budget.',
@@ -762,6 +773,16 @@ function applyTheme(){
   }
 }
 var toastTimer = null;
+/* Re-run the view fade/slide-in animation. render() only does this when
+   the view changes, so theme/language switches (same view) call this to
+   animate the swap instead of snapping. */
+function swapView(){
+  var root = el('app');
+  if (!root || !root.classList) return;
+  root.classList.remove('view-enter');
+  void root.offsetWidth;
+  root.classList.add('view-enter');
+}
 function showToast(msg){
   var t = el('toast');
   if (!t) return;
@@ -1048,6 +1069,7 @@ function dayViewHTML(){
 /* ---------------- settings ---------------- */
 function settingsViewHTML(){
   var h = headerHTML();
+  h += '<div class="setrow"><div class="hint">' + esc(t('profileHint')) + '</div></div>';
   h += '<div class="setrow"><h3>' + esc(t('theme')) + '</h3><div class="seg">' +
     '<button type="button" class="btn' + (state.settings.theme === 'light' ? ' on' : '') + '" data-action="set-theme" data-theme="light">' + esc(t('light')) + '</button>' +
     '<button type="button" class="btn' + (state.settings.theme === 'dark' ? ' on' : '') + '" data-action="set-theme" data-theme="dark">' + esc(t('dark')) + '</button>' +
@@ -1244,16 +1266,16 @@ function handleClick(e){
     }
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'lang-toggle':
       state.settings.lang = state.settings.lang === 'my' ? 'en' : 'my';
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'set-theme':
       state.settings.theme = target.getAttribute('data-theme');
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'set-lang':
       state.settings.lang = target.getAttribute('data-lang');
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'use-suggest': {
       if (!setupDraft) break;
       setupDraft.dailyTarget = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
@@ -1532,6 +1554,7 @@ if (typeof module !== 'undefined' && module.exports){
     get dayDirty(){ return dayDirty; },
     get editingName(){ return editingName; },
     hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
+    swapView: swapView,
     formatDateLong: formatDateLong, formatDateShort: formatDateShort, monthLabel: monthLabel, daysInMonth: daysInMonth,
     clampISO: clampISO, isoAdd: isoAdd, isToday: isToday, todayISO: todayISO,
     get state(){ return state; }, set state(s){ state = s; },
