@@ -354,6 +354,18 @@ table.ledger .note-in{
 .setup-view.intro .setup-form .field:nth-child(3){animation-delay:.16s;}
 .setup-view.intro .agree-row{animation:fadeUp .5s .24s ease both;}
 .setup-view.intro button[data-action="setup-start"]{animation:fadeUp .5s .32s ease both;}
+/* Login (v1.1.0): same navy/gold glass as setup, never the green/blue
+   pills of the reference app. The hero panel is shared with setup. */
+.login-card{background:var(--card-glass); border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--glass-shadow); padding:18px; -webkit-backdrop-filter:blur(20px) saturate(1.5); backdrop-filter:blur(20px) saturate(1.5);}
+.login-card .btn.primary.big{margin-top:6px;}
+.login-mode{text-align:center; margin:12px 0 4px;}
+.login-or{display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--ink-soft); font-size:13px;}
+.login-or span{flex:1; height:1px; background:var(--line);}
+.login-or em{font-style:normal;}
+.oauth-btn{width:100%; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px;}
+.oauth-g,.oauth-f{width:26px; height:26px; border-radius:50%; background:#fff; color:#1a2233; font-weight:800; font-size:17px; line-height:26px; text-align:center; flex-shrink:0;}
+.oauth-f{background:#1877f2; color:#fff;}
+.login-guest{text-align:center; margin-top:6px;}
 .field{margin-bottom:16px;}
 .field label{display:block; font-size:13.5px; color:var(--ink); font-weight:600; margin-bottom:6px;}
 .field input{
@@ -491,12 +503,39 @@ table.ledger .note-in{
 </div>
 <script>
 /* Your Wallet — PUBLIC version (PWA + Android).
-   Local-first: all data stays on the user's phone (localStorage).
-   No accounts, no cloud sync, no personal data baked in.
+   Local-first by default; accounts are optional. Without an account all
+   data stays on the user's phone (localStorage). With an account the
+   records also sync to a Supabase cloud database (plain fetch, no SDK).
+   No personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Your Wallet';
-var APP_VERSION = '1.0.25';
+var APP_VERSION = '1.1.0';
 var STORE_KEY = 'skf_public_v1';
+/* Supabase accounts + cloud sync (v1.1.0). Project "your-wallet".
+   The anon key is public by design — it goes into client code; the
+   row-level security policy on wallet_data keeps each user's rows to
+   themselves. Email auth is on with email confirmation OFF, so sign-up
+   signs in immediately (no "check your email" step). */
+var SUPABASE_URL = 'https://onqbqtpswqgzgbuqpqrn.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ucWJxdHBzd3FnemdidXFwcXJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjM2MjcsImV4cCI6MjExMDMzOTYyN30.y4Bq80eH3rMA18n5E_QkbERsHrFQwZ4eZ15sK4JXNqw';
+/* OAuth providers are gated: a button renders ONLY when its flag is
+   true. Both start false — Google needs 2-step verification on the
+   owner's Google account (Cloud Console requirement) and Facebook needs
+   a Meta app, neither of which exists yet. Flip a flag to true only
+   when that provider is actually enabled in Supabase. */
+var OAUTH_PROVIDERS = { google: false, facebook: false };
+var PWA_URL = 'https://sirkhant2713.github.io/sir-khant-finance/';
+var SESSION_KEY = 'yw_session_v1';
+function supabaseReady(){
+  return !!SUPABASE_URL && SUPABASE_URL !== '__SUPABASE_URL__' &&
+    !!SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== '__SUPABASE_ANON_KEY__';
+}
+/* Test seam: lets the test suite point the app at a fake backend. The
+   real values are filled in the two vars above before release. */
+function setSupabaseConfig(url, key){
+  SUPABASE_URL = url;
+  SUPABASE_ANON_KEY = key;
+}
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
 
@@ -575,8 +614,25 @@ var I18N = {
     dailyTarget:'တနေ့ သုံးမယ့် ပမာဏ', suggestTarget:'အကြံပြုချက်',
     start:'စတင်မယ်', skip:'ကျော်မယ်', editSetup:'အစ အချက်အလက်များ ပြင်မယ်',
     saveSetup:'သိမ်းမယ်', saved:'သိမ်းပြီးပါပြီ',
-    backup:'အရန်သိမ်း (Backup)', exportBackup:'Backup ထုတ်မယ်', importBackup:'Backup ပြန်ထည့်မယ်',
-    backupSaved:'Backup ဖိုင် သိမ်းပြီးပါပြီ', importDone:'Backup ပြန်ထည့်ပြီးပါပြီ', importFail:'Backup ဖိုင် မမှန်ပါ',
+    account:'အကောင့်', signIn:'အကောင့်ဝင်မယ်', signOut:'အကောင့်ထွက်မယ်',
+    signedInAs:'ဝင်ထားသော အကောင့်', guestMode:'အကောင့်မသုံးပဲ သုံးနေပါတယ်',
+    authSignIn:'အကောင့်ဝင်မယ်', authCreate:'အကောင့်ဖွင့်မယ်',
+    authSub:'အကောင့်နဲ့ဝင်ရင် မှတ်တမ်းတွေ cloud မှာ သိမ်းထားပေးမယ်',
+    authEmail:'အီးမေးလ်', authEmailPh:'you@example.com',
+    authPassword:'စကားဝှက်', authPasswordPh:'••••••••',
+    authSignInBtn:'ဝင်မယ်', authCreateBtn:'အကောင့်ဖွင့်မယ်',
+    authHaveAccount:'အကောင့် ရှိပြီးသားလား? ဝင်မယ်', authNoAccount:'အကောင့် မရှိသေးဘူးလား? ဖွင့်မယ်',
+    authOr:'သို့မဟုတ်', authGoogle:'Google နဲ့ ဆက်သွယ်မယ်', authFacebook:'Facebook နဲ့ ဆက်သွယ်မယ်',
+    authGuest:'အကောင့်မသုံးပဲ ဆက်သွားမယ်',
+    authNeedBoth:'အီးမေးလ်နဲ့ စကားဝှက် ထည့်ပါ',
+    authWrong:'အီးမေးလ် (သို့) စကားဝှက် မမှန်ပါ',
+    authExists:'ဒီအီးမေးလ်နဲ့ အကောင့် ရှိပြီးသားပါ',
+    authShortPw:'စကားဝှက်က အနည်းဆုံး 6 လုံး ရှိရမယ်',
+    authNetwork:'အင်တာနက် ချိတ်ဆက်၍ မရပါ',
+    authFailed:'ဝင်လို့ မရပါ — နောက်မှ ထပ်စမ်းပါ',
+    authCreated:'အကောင့် ဖွင့်ပြီးပါပြီ — ဝင်လိုက်ပါ',
+    authRestored:'အရင်က မှတ်တမ်းတွေ ပြန်ရပါပြီ',
+    authSyncFail:'cloud ကနေ ပြန်ယူ၍ မရပါ — ဖုန်းထဲက မှတ်တမ်းကိုပဲ သုံးပါမယ်',
     saveDay:'သိမ်းမယ်', enterAmount:'ငွေပမာဏ ထည့်ပါ', deleted:'ဖျက်ပြီးပါပြီ', amountPh:'ငွေပမာဏ', creditBy:'Developed by Min Khant',
     splashTag:'သင့်ဝင်ငွေကို စနစ်တကျ စီမံလိုက်ပါ',
     editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
@@ -593,7 +649,7 @@ var I18N = {
     agreeLabel:'သဘောတူညီချက်ကို လက်ခံပါတယ်',
     privacyPolicy:'Privacy Policy', close:'ပိတ်မယ်',
     exitTitle:'app ကနေ ထွက်မလား?', exitMsg:'ထွက်မှာ သေချာပြီလား။', exitYes:'ထွက်မယ်', exitNo:'မထွက်ဘူး',
-    policyText:'Your Wallet သည် သုံးစွဲသူများ၏ ကိုယ်ရေးအချက်အလက်များကို မည်သို့မျှ ရယူခြင်း၊ သိမ်းဆည်းခြင်း၊ မျှဝေခြင်း မပြုပါ။\n\nသင် ထည့်သွင်းသော ငွေကြေးမှတ်တမ်းများအားလုံးသည် သင့်ဖုန်းထဲတွင်သာ သိမ်းဆည်းထားပြီး အင်တာနက်သို့ ပေးပို့ခြင်း လုံးဝ မရှိပါ။\n\nဤအက်ပ်ကို သုံးစွဲသူများ၏ နေ့စဉ် ငွေကြေးအချက်အလက်များကို စနစ်တကျ စီမံခန့်ခွဲနိုင်စေရန် ရည်ရွယ်၍ ထုတ်လုပ်ထားခြင်း ဖြစ်ပါသည်။\n\nဤသဘောတူညီချက်ကို လက်ခံပါက "သဘောတူညီချက်ကို လက်ခံပါတယ်" ကို အမှန်ခြစ်ပြီး ရှေ့ဆက်နိုင်ပါသည်။\n\nထုတ်လုပ်သူ — Min Khant',
+    policyText:'Your Wallet ကို အကောင့်မသုံးပဲ သုံးလို့ရပါတယ်။ အကောင့်မသုံးရင် သင့်မှတ်တမ်းတွေ အားလုံး သင့်ဖုန်းထဲမှာပဲ ရှိပြီး အင်တာနက်ကို ဘယ်တော့မှ မရောက်ပါ။\n\nအကောင့်နဲ့ ဝင်သုံးရင် သင့်မှတ်တမ်းတွေကို လုံခြုံတဲ့ cloud ဒေတာဘေ့စ်မှာ သင့်အကောင့်နဲ့ ချိတ်ပြီး သိမ်းထားပေးပါတယ်။ အင်တာနက်ပေါ်မှာ သွားနေစဉ် ကုဒ်ဝှက်ထားပါတယ်။\n\nကျွန်တော်တို့ သင့်အချက်အလက်ကို ဘယ်သူ့ကိုမှ ရောင်းမပေးပါ။ အကောင့် ဖျက်ချင်ရင် ပြောပါ၊ ဖျက်ပေးပါမယ်။\n\nဤသဘောတူညီချက်ကို လက်ခံပါက "သဘောတူညီချက်ကို လက်ခံပါတယ်" ကို အမှန်ခြစ်ပြီး ရှေ့ဆက်နိုင်ပါသည်။\n\nထုတ်လုပ်သူ — Min Khant',
     reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
     resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
     overBudget:'သတ်မှတ်ထားတာထက် {x} ကျပ် ပိုသုံးထားသည်။',
@@ -619,8 +675,25 @@ var I18N = {
     dailyTarget:'Daily spending target', suggestTarget:'Suggested',
     start:'Start', skip:'Skip', editSetup:'Edit starting details',
     saveSetup:'Save', saved:'Saved',
-    backup:'Backup', exportBackup:'Export backup', importBackup:'Restore backup',
-    backupSaved:'Backup file saved', importDone:'Backup restored', importFail:'Invalid backup',
+    account:'Account', signIn:'Sign in', signOut:'Sign out',
+    signedInAs:'Signed in as', guestMode:'Using without an account',
+    authSignIn:'Sign in', authCreate:'Create account',
+    authSub:'With an account, your records stay safe in the cloud',
+    authEmail:'Email', authEmailPh:'you@example.com',
+    authPassword:'Password', authPasswordPh:'••••••••',
+    authSignInBtn:'Sign in', authCreateBtn:'Create account',
+    authHaveAccount:'Already have an account? Sign in', authNoAccount:'No account yet? Create one',
+    authOr:'or', authGoogle:'Continue with Google', authFacebook:'Continue with Facebook',
+    authGuest:'Continue without an account',
+    authNeedBoth:'Enter your email and password',
+    authWrong:'Wrong email or password',
+    authExists:'An account with this email already exists',
+    authShortPw:'Password must be at least 6 characters',
+    authNetwork:'Could not reach the internet',
+    authFailed:'Could not sign in — try again later',
+    authCreated:'Account created — sign in',
+    authRestored:'Your previous records are back',
+    authSyncFail:'Could not restore from the cloud — using the records on this phone',
     saveDay:'Save', enterAmount:'Enter an amount', deleted:'Deleted', amountPh:'Amount', creditBy:'Developed by Min Khant',
     splashTag:'Manage your income, in perfect order.',
     editNameHint:'Type your name', photoFail:'Could not load photo',
@@ -637,7 +710,7 @@ var I18N = {
     agreeLabel:'I accept the agreement',
     privacyPolicy:'Privacy Policy', close:'Close',
     exitTitle:'Exit the app?', exitMsg:'Are you sure you want to exit?', exitYes:'Yes', exitNo:'No',
-    policyText:'Your Wallet does not collect, store, or share any of your personal information.\n\nAll the financial records you enter are stored only on your device and are never sent over the internet.\n\nThis app is made to help you manage your daily finances in an organized way.\n\nIf you agree to these terms, check "I accept the agreement" to continue.\n\nDeveloped by Min Khant',
+    policyText:'You can use Your Wallet without an account. Without one, all your records stay on your phone and never reach the internet.\n\nWhen you sign in, your records are stored in a secure cloud database tied to your account, encrypted while they travel over the internet.\n\nWe never sell your data to anyone. If you want your account deleted, ask us and we will delete it.\n\nIf you agree to these terms, check "I accept the agreement" to continue.\n\nDeveloped by Min Khant',
     reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
     resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
     overBudget:'{x} MMK over the monthly budget.',
@@ -784,14 +857,20 @@ var storage = {
     try {
       if (typeof localStorage !== 'undefined') localStorage.setItem(k, v);
     } catch (e) {}
+  },
+  remove: function(k){
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.removeItem(k);
+    } catch (e) {}
   }
 };
 function defaultState(){
   return {
     setup: { done:false, balance:0, paydayDay:1, dailyTarget:0 },
     days: {},
-    settings: { theme:'light', lang:'my', tourDone:false },
-    profile: { name:'', photo:'' }
+    settings: { theme:'light', lang:'my', tourDone:false, guest:false },
+    profile: { name:'', photo:'' },
+    lastSyncedAt: null
   };
 }
 var state = defaultState();
@@ -815,7 +894,9 @@ function loadState(){
       if (s.settings.theme === 'dark' || s.settings.theme === 'light') state.settings.theme = s.settings.theme;
       if (s.settings.lang === 'my' || s.settings.lang === 'en') state.settings.lang = s.settings.lang;
       if (s.settings.tourDone === true) state.settings.tourDone = true;
+      if (s.settings.guest === true) state.settings.guest = true;
     }
+    if (typeof s.lastSyncedAt === 'string') state.lastSyncedAt = s.lastSyncedAt;
     if (s.profile && typeof s.profile === 'object'){
       if (!state.profile) state.profile = { name:'', photo:'' };
       if (typeof s.profile.name === 'string') state.profile.name = s.profile.name.slice(0, 24);
@@ -823,7 +904,20 @@ function loadState(){
     }
   } catch (e) { /* corrupted storage: keep defaults */ }
 }
-function persist(){ try { storage.set(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+/* After a local change, push the state to the cloud (signed in only).
+   Debounced ~2s so a burst of saves uploads once; silent on failure —
+   the local copy is always the source of truth. */
+var uploadTimer = null;
+function scheduleUpload(){
+  if (!supabaseReady() || !session) return;
+  if (typeof setTimeout === 'undefined') return;
+  if (uploadTimer) clearTimeout(uploadTimer);
+  uploadTimer = setTimeout(function(){ uploadTimer = null; uploadState().catch(function(){}); }, 2000);
+}
+function persist(skipSync){
+  try { storage.set(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  if (!skipSync) scheduleUpload();
+}
 function blankDay(){ return { entries:[], income:[] }; }
 function getDay(iso){
   if (!state.days[iso]) state.days[iso] = blankDay();
@@ -981,7 +1075,10 @@ function donutSegments(byCat){
   return segs;
 }
 
-/* ---------------- backup ---------------- */
+/* ---------------- state import/export ---------------- */
+/* exportState/importState used to power the file backup (removed in
+   v1.1.0). They stay: cloud restore reuses importState's validation to
+   apply a downloaded state, and the tests cover the round-trip. */
 function exportState(){ return JSON.stringify(state); }
 function importState(text){
   var s;
@@ -1006,7 +1103,9 @@ function importState(text){
     if (s.settings.theme === 'dark' || s.settings.theme === 'light') next.settings.theme = s.settings.theme;
     if (s.settings.lang === 'my' || s.settings.lang === 'en') next.settings.lang = s.settings.lang;
     if (s.settings.tourDone === true) next.settings.tourDone = true;
+    if (s.settings.guest === true) next.settings.guest = true;
   }
+  if (typeof s.lastSyncedAt === 'string') next.lastSyncedAt = s.lastSyncedAt;
   if (s.profile && typeof s.profile === 'object'){
     if (typeof s.profile.name === 'string') next.profile.name = s.profile.name.slice(0, 24);
     if (typeof s.profile.photo === 'string') next.profile.photo = s.profile.photo;
@@ -1015,6 +1114,286 @@ function importState(text){
   persist();
   return { ok:true };
 }
+
+/* ---------------- accounts + cloud sync (v1.1.0) ---------------- */
+/* Supabase Auth + PostgREST over plain fetch — no SDK, so the app stays
+   a single offline file. Accounts are optional: without one the app is
+   exactly the local-only app it was before. While the Supabase config
+   is still placeholders, every function below is a no-op. */
+var session = null; /* {access_token, refresh_token, user_id, email, expires_at} */
+function loadSession(){
+  try {
+    var raw = storage.get(SESSION_KEY);
+    if (!raw) return;
+    var s = JSON.parse(raw);
+    if (s && s.access_token && s.refresh_token && s.user_id) session = s;
+  } catch (e) {}
+}
+function saveSession(){
+  if (!session) return;
+  try { storage.set(SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+}
+function clearSession(){
+  session = null;
+  try { storage.remove(SESSION_KEY); } catch (e) {}
+}
+/* True when the login screen must gate the app: a backend is configured,
+   nobody is signed in, and the user has not chosen guest mode. */
+function needsLogin(){
+  return supabaseReady() && !session && !(state.settings && state.settings.guest);
+}
+function authHeaders(extra){
+  var h = { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' };
+  if (extra) for (var k in extra) h[k] = extra[k];
+  return h;
+}
+function sessionFromAuth(data){
+  if (!data || !data.access_token || !data.user) return null;
+  var exp = data.expires_at ? Number(data.expires_at) * 1000
+    : Date.now() + (Number(data.expires_in) || 3600) * 1000;
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || '',
+    user_id: data.user.id,
+    email: data.user.email || '',
+    expires_at: exp
+  };
+}
+function authRequest(path, body){
+  return fetch(SUPABASE_URL + path, {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(body)
+  }).then(function(res){
+    return res.json().then(function(j){ return { status: res.status, ok: res.ok, body: j }; });
+  });
+}
+function authError(r){
+  var b = (r && r.body) || {};
+  var msg = String(b.error_description || b.msg || b.error || '');
+  var e = new Error(msg || ('HTTP ' + (r ? r.status : '?')));
+  e.status = r ? r.status : 0;
+  e.code = msg;
+  return e;
+}
+/* Maps a Supabase error onto a short toast key — never a raw dump. */
+function authErrorKey(e){
+  var m = String((e && e.code) || (e && e.message) || '').toLowerCase();
+  if (m.indexOf('invalid login') !== -1 || m.indexOf('invalid_grant') !== -1 ||
+      m.indexOf('invalid email') !== -1) return 'authWrong';
+  if (m.indexOf('already registered') !== -1 || m.indexOf('already exists') !== -1 ||
+      m.indexOf('user already') !== -1) return 'authExists';
+  if (m.indexOf('password') !== -1 && m.indexOf('short') !== -1) return 'authShortPw';
+  if (m.indexOf('network') !== -1 || m.indexOf('failed to fetch') !== -1 ||
+      m.indexOf('failed') !== -1) return 'authNetwork';
+  return 'authFailed';
+}
+function signInEmail(email, password){
+  return authRequest('/auth/v1/token?grant_type=password', { email: email, password: password })
+    .then(function(r){
+      if (!r.ok || !r.body.access_token) throw authError(r);
+      session = sessionFromAuth(r.body);
+      saveSession();
+      return session;
+    });
+}
+function signUpEmail(email, password){
+  return authRequest('/auth/v1/signup', { email: email, password: password })
+    .then(function(r){
+      if (!r.ok) throw authError(r);
+      /* Email confirmation on: signup returns a user but no session yet.
+         The caller shows "account created — sign in" instead of failing. */
+      if (r.body.access_token){
+        session = sessionFromAuth(r.body);
+        saveSession();
+        return { session: session, created: true };
+      }
+      return { session: null, created: true };
+    });
+}
+function refreshSession(){
+  if (!session || !session.refresh_token) return Promise.reject(new Error('no session'));
+  return authRequest('/auth/v1/token?grant_type=refresh_token', { refresh_token: session.refresh_token })
+    .then(function(r){
+      if (!r.ok || !r.body.access_token) throw authError(r);
+      session = sessionFromAuth(r.body);
+      saveSession();
+      return session;
+    });
+}
+function ensureFreshToken(){
+  if (!session) return Promise.reject(new Error('no session'));
+  if (session.expires_at && session.expires_at - Date.now() > 60000) return Promise.resolve(session);
+  return refreshSession();
+}
+/* Best-effort server logout; the local session is cleared either way. */
+function signOut(){
+  var p = Promise.resolve();
+  if (session && session.access_token && supabaseReady() && typeof fetch !== 'undefined'){
+    p = fetch(SUPABASE_URL + '/auth/v1/logout', {
+      method: 'POST',
+      headers: authHeaders({ 'Authorization': 'Bearer ' + session.access_token })
+    }).then(function(){}, function(){});
+  }
+  clearSession();
+  return p;
+}
+/* The OAuth implicit flow returns no user id in the hash, so fetch it
+   once from /auth/v1/user. Always resolves (null on failure). */
+function fetchUser(){
+  if (!supabaseReady() || !session || !session.access_token) return Promise.resolve(null);
+  if (typeof fetch === 'undefined') return Promise.resolve(null);
+  return fetch(SUPABASE_URL + '/auth/v1/user', {
+    headers: authHeaders({ 'Authorization': 'Bearer ' + session.access_token })
+  })
+    .then(function(res){ return res.ok ? res.json() : null; })
+    .then(function(u){
+      if (u && u.id){
+        session.user_id = u.id;
+        if (u.email) session.email = u.email;
+        saveSession();
+        return session;
+      }
+      return null;
+    })
+    .catch(function(){ return null; });
+}
+function oauthUrl(provider){
+  return SUPABASE_URL + '/auth/v1/authorize?provider=' + provider +
+    '&redirect_to=' + encodeURIComponent(PWA_URL);
+}
+function startOAuth(provider){
+  var url = oauthUrl(provider);
+  /* APK: open in the system browser (the WebView cannot finish an OAuth
+     redirect back into the app by itself — the deep-link return is a
+     follow-up for the native shell). */
+  if (typeof AndroidBridge !== 'undefined' && AndroidBridge && AndroidBridge.openExternal){
+    try { AndroidBridge.openExternal(url); return; } catch (e) {}
+  }
+  if (typeof window !== 'undefined' && window.AndroidBridge && window.AndroidBridge.openExternal){
+    try { window.AndroidBridge.openExternal(url); return; } catch (e) {}
+  }
+  if (typeof window !== 'undefined' && window.location){ window.location.href = url; return; }
+  if (typeof window !== 'undefined' && window.open) window.open(url, '_blank');
+}
+/* Parses an OAuth return hash (#access_token=...&refresh_token=...&
+   expires_at=...) into a session and scrubs the tokens from the URL. */
+function parseOAuthReturn(){
+  if (typeof window === 'undefined' || !window.location) return false;
+  var hash = window.location.hash || '';
+  if (hash.indexOf('access_token=') === -1) return false;
+  var params = {};
+  hash.replace(/^#/, '').split('&').forEach(function(pair){
+    var kv = pair.split('=');
+    if (kv[0]){
+      try { params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || ''); }
+      catch (e) { params[kv[0]] = kv[1] || ''; }
+    }
+  });
+  if (!params.access_token || !params.refresh_token) return false;
+  session = {
+    access_token: params.access_token,
+    refresh_token: params.refresh_token,
+    user_id: params.user_id || '',
+    email: params.email || '',
+    expires_at: params.expires_at ? Number(params.expires_at) * 1000 : Date.now() + 3600000
+  };
+  saveSession();
+  try {
+    if (window.history && window.history.replaceState){
+      window.history.replaceState(null, '', window.location.pathname || '/');
+    }
+  } catch (e) {}
+  return true;
+}
+/* After any successful auth: finish the session, restore from the cloud,
+   then land on setup (new user) or home. */
+function afterAuth(){
+  loginBusy = false;
+  loginDraft = { email:'', password:'' };
+  return syncDownOnStart().then(function(res){
+    if (res === 'applied') showToast(t('authRestored'));
+    else if (res === 'failed') showToast(t('authSyncFail'));
+    if (state.setup.done) goHome(false);
+    else { view = { name:'setup', iso: clampISO(todayISO()) }; render(); }
+  });
+}
+function handleOAuthReturn(){
+  fetchUser().then(function(){ return afterAuth(); });
+}
+
+/* ---------------- cloud sync ---------------- */
+/* One row per user in the wallet_data table (user_id uuid PK, data jsonb,
+   updated_at timestamptz). Last-write-wins by updated_at. A failed
+   download NEVER wipes local data — the local copy is the truth. */
+function uploadState(){
+  if (!supabaseReady() || !session) return Promise.resolve({ ok:false, reason:'no-session' });
+  return ensureFreshToken().then(function(){
+    var row = {
+      user_id: session.user_id,
+      data: state,
+      updated_at: new Date().toISOString()
+    };
+    return fetch(SUPABASE_URL + '/rest/v1/wallet_data?on_conflict=user_id', {
+      method: 'POST',
+      headers: authHeaders({
+        'Authorization': 'Bearer ' + session.access_token,
+        'Prefer': 'resolution=merge-duplicates'
+      }),
+      body: JSON.stringify(row)
+    }).then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      state.lastSyncedAt = row.updated_at;
+      persist(true);
+      return { ok:true };
+    });
+  }).catch(function(e){
+    return { ok:false, reason:'network', error: String(e && e.message || e) };
+  });
+}
+function downloadState(){
+  if (!supabaseReady() || !session) return Promise.resolve(null);
+  return ensureFreshToken().then(function(){
+    return fetch(SUPABASE_URL + '/rest/v1/wallet_data?user_id=eq.' +
+      encodeURIComponent(session.user_id) + '&select=data,updated_at', {
+      headers: authHeaders({ 'Authorization': 'Bearer ' + session.access_token })
+    }).then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(rows){
+      if (!rows || !rows.length) return null;
+      return rows[0];
+    });
+  });
+}
+/* Applies a downloaded row when it is newer than the local copy.
+   Returns 'applied' | 'skipped' | 'empty' | 'bad'. */
+function applyRemoteIfNewer(row){
+  if (!row || !row.data) return 'empty';
+  var remoteTs = row.updated_at || '';
+  var localTs = state.lastSyncedAt || '';
+  if (remoteTs && localTs && remoteTs <= localTs) return 'skipped';
+  var r = importState(JSON.stringify(row.data));
+  if (!r.ok) return 'bad';
+  state.lastSyncedAt = remoteTs || new Date().toISOString();
+  persist(true);
+  return 'applied';
+}
+/* Download once (login / app start). No remote row + local data means
+   this device is the first one — push local up instead. */
+function syncDownOnStart(){
+  if (!supabaseReady() || !session) return Promise.resolve('skip');
+  return downloadState().then(function(row){
+    if (!row){
+      if (state.setup.done || Object.keys(state.days || {}).length){
+        return uploadState().then(function(){ return 'uploaded'; });
+      }
+      return 'empty';
+    }
+    var res = applyRemoteIfNewer(row);
+    if (res === 'applied') render();
+    return res;
+  }).catch(function(){ return 'failed'; });
+}
+
 /* ---------------- view state ---------------- */
 var view = { name:'home', iso: clampISO(todayISO()) };
 var searchText = '';
@@ -1044,6 +1423,12 @@ var draft = null;
 /* True while a save is animating out — draft taps are ignored until the
    entry is committed, so a double-tap can never save twice. */
 var draftSaving = false;
+/* Login form state (v1.1.0): 'signin' | 'signup' mode, a busy flag that
+   blocks double-submit, and the typed values so a re-render (e.g. the
+   mode toggle) never wipes what the user typed. */
+var loginMode = 'signin';
+var loginBusy = false;
+var loginDraft = { email:'', password:'' };
 function catColor(id){ for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].color; return '#8a8a7a'; }
 /* A zero-amount entry with no note carries no information — it is an
    accidental chip tap. */
@@ -1276,7 +1661,7 @@ function searchHTML(){
     '" value="' + esc(searchText) + '" autocomplete="off">' + sugg + '</div>';
 }
 function tabbarHTML(){
-  if (view.name === 'setup') return '';
+  if (view.name === 'setup' || view.name === 'login' || needsLogin()) return '';
   var tabs = [
     { name:'home', label: t('home'), ic:'home' },
     { name:'day', label: t('day'), ic:'calendar' },
@@ -1290,6 +1675,62 @@ function tabbarHTML(){
   });
   h += '</div>';
   return h;
+}
+
+/* ---------------- login ---------------- */
+/* Shown after the splash when nobody is signed in and guest mode was not
+   chosen. Our own navy/gold glass — the Wallet reference's green/blue
+   pills are a flow reference only, never a design copy. */
+function loginViewHTML(){
+  var h = '<div class="login-view"><div class="setup-hero"><div class="hero-brand">' + icon('wallet') + '<div class="w">' + esc(APP_NAME) + '</div>' +
+    '<div class="rule"></div>' +
+    '<div class="t">' + esc(t(loginMode === 'signup' ? 'authCreate' : 'authSignIn')) + '</div>' +
+    '<div class="s">' + esc(t('authSub')) + '</div></div></div>';
+  h += '<div class="login-card"><div class="field"><label>' + esc(t('authEmail')) + '</label>' +
+    '<input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="' + esc(t('authEmailPh')) + '" value="' + esc(loginDraft.email) + '"></div>';
+  h += '<div class="field"><label>' + esc(t('authPassword')) + '</label>' +
+    '<input id="loginPw" type="password" autocomplete="current-password" placeholder="' + esc(t('authPasswordPh')) + '" value="' + esc(loginDraft.password) + '"></div>';
+  h += '<button type="button" class="btn primary big" data-action="auth-submit"' + (loginBusy ? ' disabled' : '') + '>' + esc(t(loginMode === 'signup' ? 'authCreateBtn' : 'authSignInBtn')) + '</button>';
+  h += '<div class="login-mode"><button type="button" class="policylink" data-action="auth-toggle-mode">' + esc(t(loginMode === 'signup' ? 'authHaveAccount' : 'authNoAccount')) + '</button></div>';
+  /* OAuth buttons render only for providers actually enabled in
+     Supabase (see OAUTH_PROVIDERS) — a dead button is worse than none. */
+  if (OAUTH_PROVIDERS.google || OAUTH_PROVIDERS.facebook){
+    h += '<div class="login-or"><span></span><em>' + esc(t('authOr')) + '</em><span></span></div>';
+    if (OAUTH_PROVIDERS.google) h += '<button type="button" class="btn oauth-btn" data-action="oauth-google"><span class="oauth-g">G</span>' + esc(t('authGoogle')) + '</button>';
+    if (OAUTH_PROVIDERS.facebook) h += '<button type="button" class="btn oauth-btn" data-action="oauth-facebook"><span class="oauth-f">f</span>' + esc(t('authFacebook')) + '</button>';
+  }
+  h += '<div class="login-guest"><button type="button" class="policylink" data-action="auth-guest">' + esc(t('authGuest')) + '</button></div>';
+  h += '</div>';
+  h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  h += '</div>';
+  return h;
+}
+function doEmailAuth(){
+  if (loginBusy) return;
+  if (!supabaseReady()){ showToast(t('authFailed')); return; }
+  var em = el('loginEmail'), pw = el('loginPw');
+  var email = em ? String(em.value || '').trim() : loginDraft.email;
+  var password = pw ? String(pw.value || '') : loginDraft.password;
+  if (!email || email.indexOf('@') === -1 || !password){ showToast(t('authNeedBoth')); return; }
+  loginBusy = true;
+  render();
+  var p = loginMode === 'signup' ? signUpEmail(email, password) : signInEmail(email, password);
+  p.then(function(r){
+    if (loginMode === 'signup' && r && !r.session){
+      /* Email confirmation pending: no session yet. Switch to sign-in
+         and let the user sign in once confirmed. */
+      loginMode = 'signin';
+      loginBusy = false;
+      showToast(t('authCreated'));
+      render();
+      return;
+    }
+    return afterAuth();
+  }).catch(function(e){
+    loginBusy = false;
+    showToast(t(authErrorKey(e)));
+    render();
+  });
 }
 
 /* ---------------- setup ---------------- */
@@ -1326,8 +1767,9 @@ function setupViewHTML(){
   h += '</div>';
   return h;
 }
-/* Privacy Policy modal (setup + settings). The policy text lives in I18N
-   so it follows the app language. */
+/* Privacy Policy modal (setup screen only since v1.1.0 — read once at
+   first entry). The policy text lives in I18N so it follows the app
+   language. */
 function policyModalHTML(){
   if (!policyOpen) return '';
   return '<div class="modal-overlay" id="policyModal">' +
@@ -1520,6 +1962,21 @@ function settingsViewHTML(){
   h += '<div class="setrow"><div class="hint">' + esc(t('profileHint')) + '</div></div>';
   /* Theme + language live in the header on every view, so Settings does
      not repeat them. */
+  /* Account (v1.1.0): only when a backend is configured. Signed in shows
+     the email + Sign out; guest mode shows a Sign in button. The Privacy
+     Policy lives on the setup screen only — it is read once at first
+     entry, never repeated here. */
+  if (supabaseReady()){
+    if (session){
+      h += '<div class="setrow"><h3>' + esc(t('account')) + '</h3>' +
+        '<div class="hint">' + esc(t('signedInAs')) + ': ' + esc(session.email || '') + '</div>' +
+        '<div class="rowbtns"><button type="button" class="btn" data-action="sign-out">' + esc(t('signOut')) + '</button></div></div>';
+    } else {
+      h += '<div class="setrow"><h3>' + esc(t('account')) + '</h3>' +
+        '<div class="hint">' + esc(t('guestMode')) + '</div>' +
+        '<div class="rowbtns"><button type="button" class="btn primary" data-action="go-login">' + esc(t('signIn')) + '</button></div></div>';
+    }
+  }
   h += '<div class="setrow"><h3>' + esc(t('editSetup')) + '</h3>' +
     '<div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
     '<input id="editBal" type="number" inputmode="numeric" min="0" value="' + (state.setup.balance || '') + '"></div>' +
@@ -1528,12 +1985,6 @@ function settingsViewHTML(){
     '<div class="field" style="margin-bottom:0"><label>' + esc(t('dailyTarget')) + ' (' + esc(t('kyat')) + ' ' + esc(t('perDay')) + ')</label>' +
     '<input id="editTgt" type="number" inputmode="numeric" min="0" value="' + (state.setup.dailyTarget || '') + '"></div>' +
     '<div class="rowbtns"><button type="button" class="btn primary" data-action="save-setup">' + esc(t('saveSetup')) + '</button></div></div>';
-  h += '<div class="setrow"><h3>' + esc(t('backup')) + '</h3>' +
-    '<div class="rowbtns" style="margin-top:0">' +
-    '<button type="button" class="btn" data-action="export-backup">' + icon('download') + ' ' + esc(t('exportBackup')) + '</button>' +
-    '<button type="button" class="btn" data-action="import-pick">' + icon('upload') + ' ' + esc(t('importBackup')) + '</button></div>' +
-    '<input type="file" id="importFile" accept=".json,application/json" style="display:none"></div>';
-  h += '<div class="setrow"><div class="rowbtns" style="margin-top:0"><button type="button" class="btn" data-action="open-policy">' + esc(t('privacyPolicy')) + '</button></div></div>';
   h += '<div class="setrow"><div class="rowbtns" style="margin-top:0"><button type="button" class="btn danger" data-action="reset-data">' +
     esc(resetArmed ? t('resetConfirm') : t('reset')) + '</button></div></div>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
@@ -1557,9 +2008,12 @@ function render(){
   var key = view.name + '|' + (view.iso || '');
   var newView = (key !== lastViewKey);
   /* First-run tour: start it the first time a finished setup lands on home. */
-  if (view.name === 'home' && state.setup.done && !(state.settings && state.settings.tourDone) && tourStep === null) tourStep = 0;
+  if (view.name === 'home' && state.setup.done && !needsLogin() && !(state.settings && state.settings.tourDone) && tourStep === null) tourStep = 0;
   var html;
-  if (!state.setup.done) html = setupViewHTML();
+  /* The login gate overrides every view: while it applies, no other
+     screen can be reached by any navigation path. */
+  if (view.name === 'login' || needsLogin()) html = loginViewHTML();
+  else if (!state.setup.done) html = setupViewHTML();
   else if (view.name === 'home') html = homeViewHTML();
   else if (view.name === 'settings') html = settingsViewHTML();
   else html = dayViewHTML();
@@ -1577,9 +2031,9 @@ function render(){
   var enterCls = (newView && !slideDir) ? ' view-enter' : '';
   html = '<div class="view-body' + enterCls + '" id="viewBody">' + html + '</div>';
   slideDir = null;
-  if (view.name === 'home' && state.setup.done) html += '<button type="button" class="fab" data-action="fab-add">+</button>';
+  if (view.name === 'home' && state.setup.done && !needsLogin()) html += '<button type="button" class="fab" data-action="fab-add">+</button>';
   html += tabbarHTML();
-  if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
+  if (tourStep !== null && view.name === 'home' && state.setup.done && !needsLogin()) html += tourHTML();
   if (policyOpen) html += policyModalHTML();
   if (exitOpen) html += exitModalHTML();
   root.innerHTML = html;
@@ -1624,9 +2078,21 @@ function goToSettings(push){
   setHash('#settings', push === true);
   render();
 }
+function goToLogin(push){
+  view = { name:'login', iso: view.iso };
+  setHash('#login', push === true);
+  render();
+}
 function onHashChange(){
   var hash = (typeof window !== 'undefined' && window.location) ? window.location.hash : '';
-  if (hash === '#settings') view = { name:'settings', iso: view.iso };
+  /* An OAuth return landing on an already-open app (rare — the return is
+     normally a fresh load handled by init). */
+  if (hash.indexOf('access_token=') !== -1){
+    if (parseOAuthReturn()) handleOAuthReturn();
+    return;
+  }
+  if (hash === '#login') view = { name:'login', iso: view.iso };
+  else if (hash === '#settings') view = { name:'settings', iso: view.iso };
   else if (hash === '#home') view = { name:'home', iso: clampISO(todayISO()) };
   else {
     var m = hash.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
@@ -1642,6 +2108,11 @@ function handleBack(){
   if (exitOpen){ exitOpen = false; render(); return; }
   if (policyOpen){ policyOpen = false; render(); return; }
   if (tourStep !== null){ endTour(); return; }
+  /* Login as a gate (no session, not guest): Back asks before exit —
+     there is nowhere else to go. A guest who opened login from Settings
+     just goes back home instead. */
+  if (needsLogin()){ exitOpen = true; render(); return; }
+  if (view.name === 'login'){ goHome(false); return; }
   if (view.name === 'home'){ exitOpen = true; render(); return; }
   goHome(false);
 }
@@ -1681,7 +2152,7 @@ function onPopState(e){
   handleBack();
   /* The Back just popped the sentinel; sync the URL to the view the
      handler landed on, then push a fresh sentinel. */
-  setHash(view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
+  setHash(view.name === 'login' ? '#login' : view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
   webBackArmed = false;
   armWebBack();
 }
@@ -1948,14 +2419,6 @@ function handleClick(e){
       render();
       break;
     }
-    case 'export-backup':
-      exportBackup();
-      break;
-    case 'import-pick': {
-      var fi = el('importFile');
-      if (fi && fi.click) fi.click();
-      break;
-    }
     case 'reset-data': {
       if (!resetArmed){
         resetArmed = true;
@@ -1965,6 +2428,10 @@ function handleClick(e){
       } else {
         if (resetTimer) clearTimeout(resetTimer);
         resetArmed = false;
+        /* Reset clears LOCAL data and signs out. The cloud row stays —
+           signing in again restores it, so this is a fresh start on this
+           device, not an account deletion. */
+        signOut();
         state = defaultState();
         setupDraft = null;
         draft = null;
@@ -1975,6 +2442,9 @@ function handleClick(e){
         setupIntroPlayed = false;
         agreeChecked = false;
         policyOpen = false;
+        loginMode = 'signin';
+        loginBusy = false;
+        loginDraft = { email:'', password:'' };
         persist();
         view = { name:'setup', iso: clampISO(todayISO()) };
         showToast(t('resetDone'));
@@ -1982,34 +2452,34 @@ function handleClick(e){
       }
       break;
     }
+    case 'auth-submit':
+      doEmailAuth();
+      break;
+    case 'auth-toggle-mode':
+      loginMode = loginMode === 'signup' ? 'signin' : 'signup';
+      render();
+      break;
+    case 'oauth-google':
+      startOAuth('google');
+      break;
+    case 'oauth-facebook':
+      startOAuth('facebook');
+      break;
+    case 'auth-guest':
+      state.settings.guest = true;
+      persist();
+      if (state.setup.done) goHome(false);
+      else { view = { name:'setup', iso: clampISO(todayISO()) }; render(); }
+      break;
+    case 'go-login':
+      goToLogin();
+      break;
+    case 'sign-out':
+      signOut();
+      if (state.setup.done) goHome(false);
+      else { view = { name:'setup', iso: clampISO(todayISO()) }; render(); }
+      break;
   }
-}
-/* Backup export: a real file, never raw text on screen.
-   APK: the native shell (AndroidBridge) writes it into Downloads.
-   Browser/PWA: a normal file download. Last resort: clipboard copy. */
-function exportBackup(){
-  var json = exportState();
-  if (typeof window !== 'undefined' && window.AndroidBridge && window.AndroidBridge.saveBackup){
-    try { window.AndroidBridge.saveBackup(json); showToast(t('backupSaved')); return; } catch (e) {}
-  }
-  if (typeof document !== 'undefined' && typeof Blob !== 'undefined' &&
-      typeof URL !== 'undefined' && URL.createObjectURL){
-    try {
-      var blob = new Blob([json], { type:'application/json' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = 'your-wallet-backup.json';
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-      showToast(t('backupSaved'));
-      return;
-    } catch (err) {}
-  }
-  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(json).then(function(){ showToast(t('backupSaved')); },
-      function(){ showToast(t('importFail')); });
-  } else { showToast(t('importFail')); }
 }
 /* Downscale a picked photo to max 256px (JPEG) so the profile picture
    stays small in localStorage. Calls done(dataUrl) or done(null). */
@@ -2053,19 +2523,6 @@ function handleChange(e){
     rd.readAsDataURL(f);
     return;
   }
-  if (target.id === 'importFile'){
-    var bf = target.files[0];
-    if (!bf) return;
-    if (typeof FileReader === 'undefined'){ showToast(t('importFail')); return; }
-    var brd = new FileReader();
-    brd.onload = function(){
-      var r = importState(String(brd.result || ''));
-      showToast(r.ok ? t('importDone') : t('importFail'));
-      if (r.ok){ setupDraft = null; draft = null; goHome(false); }
-    };
-    brd.onerror = function(){ showToast(t('importFail')); };
-    brd.readAsText(bf);
-  }
 }
 function handleKeyDown(e){
   if (!e || !e.target) return;
@@ -2076,6 +2533,9 @@ function handleKeyDown(e){
     state.profile.name = nm;
     editingName = false;
     persist(); render();
+  }
+  if (e.key === 'Enter' && (e.target.id === 'loginEmail' || e.target.id === 'loginPw')){
+    doEmailAuth();
   }
 }
 function updateSuggestChip(){
@@ -2114,6 +2574,14 @@ function handleInput(e){
   }
   if (target.id === 'nameInput'){
     nameDraft = target.value;
+    return;
+  }
+  if (target.id === 'loginEmail'){
+    loginDraft.email = target.value;
+    return;
+  }
+  if (target.id === 'loginPw'){
+    loginDraft.password = target.value;
     return;
   }
   var da = target.getAttribute('data-draft-amount');
@@ -2161,11 +2629,19 @@ function showSplash(){
 }
 function init(){
   loadState();
+  loadSession();
+  /* An OAuth return lands on a fresh page load with tokens in the hash.
+     Parse them before routing so the session is in place. */
+  var oauthReturn = false;
+  if (supabaseReady() && !session){
+    oauthReturn = parseOAuthReturn();
+  }
   if (!state.setup.done){
     view = { name:'setup', iso: clampISO(todayISO()) };
   } else if (typeof window !== 'undefined' && window.location && window.location.hash){
     var hash = window.location.hash;
-    if (hash === '#settings'){ view = { name:'settings', iso: clampISO(todayISO()) }; }
+    if (hash === '#login'){ view = { name:'login', iso: clampISO(todayISO()) }; }
+    else if (hash === '#settings'){ view = { name:'settings', iso: clampISO(todayISO()) }; }
     else if (hash === '#home'){ view = { name:'home', iso: clampISO(todayISO()) }; }
     else {
       var m = hash.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
@@ -2174,8 +2650,15 @@ function init(){
   } else {
     view = { name:'home', iso: clampISO(todayISO()) };
   }
-  setHash(view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
+  setHash(view.name === 'login' ? '#login' : view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
   render();
+  if (oauthReturn){
+    handleOAuthReturn();
+  } else if (session){
+    /* Returning user: quietly pull anything newer from the cloud. A
+       failure here is silent — the local copy stays as-is. */
+    syncDownOnStart().catch(function(){});
+  }
   showSplash();
   if (typeof document !== 'undefined'){
     document.addEventListener('click', handleClick);
@@ -2222,7 +2705,26 @@ if (typeof module !== 'undefined' && module.exports){
     get exitingApp(){ return exitingApp; }, setExitingApp: function(v){ exitingApp = v; },
     setWebBackArmed: function(v){ webBackArmed = v; },
     render: render, init: init, handleClick: handleClick, handleInput: handleInput,
-    handleChange: handleChange, handleKeyDown: handleKeyDown, exportBackup: exportBackup,
+    handleChange: handleChange, handleKeyDown: handleKeyDown,
+    /* accounts + cloud sync (v1.1.0) */
+    loadSession: loadSession, saveSession: saveSession,
+    needsLogin: needsLogin, supabaseReady: supabaseReady,
+    setSupabaseConfig: setSupabaseConfig,
+    getSession: function(){ return session; },
+    setSession: function(s){ session = s; },
+    signInEmail: signInEmail, signUpEmail: signUpEmail,
+    refreshSession: refreshSession, signOut: signOut,
+    ensureFreshToken: ensureFreshToken, fetchUser: fetchUser,
+    authErrorKey: authErrorKey,
+    uploadState: uploadState, downloadState: downloadState,
+    syncDownOnStart: syncDownOnStart, applyRemoteIfNewer: applyRemoteIfNewer,
+    parseOAuthReturn: parseOAuthReturn, oauthUrl: oauthUrl,
+    goToLogin: goToLogin, doEmailAuth: doEmailAuth, afterAuth: afterAuth,
+    get loginMode(){ return loginMode; }, setLoginMode: function(m){ loginMode = m; },
+    get loginBusy(){ return loginBusy; },
+    get loginDraft(){ return loginDraft; },
+    OAUTH_PROVIDERS: OAUTH_PROVIDERS,
+    PWA_URL: PWA_URL,
     profileName: profileName, profilePhoto: profilePhoto,
     get draft(){ return draft; },
     isJunk: isJunk, purgeJunk: purgeJunk,
