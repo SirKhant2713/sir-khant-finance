@@ -78,6 +78,15 @@ button:active{transform:translateY(-2px); box-shadow:0 8px 16px rgba(38,34,26,.1
 }
 .iconbtn svg{width:20px; height:20px;}
 .iconbtn.on{color:var(--green-ink); border-color:var(--green);}
+/* Language toggle: a pill sized to the text — "မြန်မာ" never fit the
+   38px circle and overflowed its frame. */
+.langbtn{
+  min-width:56px; height:38px; padding:0 13px; border-radius:99px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink);
+  font-size:14px; font-weight:700; font-family:inherit;
+  display:inline-flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow); flex-shrink:0;
+}
 /* ---------- header (user profile) ---------- */
 header.top{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:4px 0 14px;}
 .profile{display:flex; align-items:center; gap:10px; min-width:0;}
@@ -166,7 +175,8 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .datenav .d{text-align:center; flex:1;}
 .datenav .d .date{font-size:19px; font-weight:700;}
 .datenav .d .wd{font-size:13px; color:var(--ink-soft);}
-.arrow{width:42px; height:42px; font-size:22px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink); border-radius:12px; box-shadow:var(--shadow); flex-shrink:0;}
+.arrow{width:42px; height:42px; border:1px solid var(--line-strong); background:var(--card); color:var(--ink); border-radius:12px; box-shadow:var(--shadow); flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;}
+.arrow svg{width:20px; height:20px;}
 .search{position:relative; margin-bottom:14px;}
 .search input{
   width:100%; padding:11px 13px; font-size:15px; font-family:inherit; color:var(--ink);
@@ -333,7 +343,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.12';
+var APP_VERSION = '1.0.13';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -359,7 +369,9 @@ var ICON_PATHS = {
   download: '<path d="M12 3v11"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>',
   upload: '<path d="M12 21V10"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/>',
   check: '<path d="M4 12.5l5 5L20 6.5"/>',
-  trash: '<path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>'
+  trash: '<path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>',
+  chevL: '<path d="M15 5l-7 7 7 7"/>',
+  chevR: '<path d="M9 5l7 7-7 7"/>'
 };
 function icon(id){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICON_PATHS[id] || '') + '</svg>';
@@ -414,12 +426,12 @@ var I18N = {
     backupSaved:'Backup ဖိုင် သိမ်းပြီးပါပြီ', importDone:'Backup ပြန်ထည့်ပြီးပါပြီ', importFail:'Backup ဖိုင် မမှန်ပါ',
     saveDay:'သိမ်းမယ်', enterAmount:'ငွေပမာဏ ထည့်ပါ', deleted:'ဖျက်ပြီးပါပြီ', amountPh:'ငွေပမာဏ', creditBy:'Developed by Min Khant',
     editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
-    monthTotal:'စုစုပေါင်း', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
+    monthTotal:'ပျှမ်းမျှ', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
     paydayMonth:'ယခုလ {m}သည် ရက် {x} တွင် လကုန်ပါသည်။ လစာထုတ်ရက်ကို 1 ကနေ {x} အထိ ထည့်ပါ။',
     todayIs:'ယနေ့ {d} {m} {y}', monthEnds:'{m}လ ရက် {x} တွင် လကုန်မည်',
     profileHint:'မိမိ name နှင့် Profile ပြောင်းရန် username နှင့် profile ပုံကို နှိပ်ပြီး ပြောင်းလဲနိုင်ပါတယ်',
     budgetWhy:'အကြောင်းအရာ',
-    budgetWhyText:'တရက်ပျှမ်းမျှ {t} လို့ သတ်မှတ်ထားတာကြောင့်၊ ဒီလ ရက် {d} ရက် × {t} = {b} ဖြစ်ပါတယ်။ ဒီလကုန်အထိ သုံးနိုင်တဲ့ စုစုပေါင်းပါ။',
+    budgetWhyText:'တရက်ပျှမ်းမျှ {t} လို့ သတ်မှတ်ထားတာကြောင့်၊ ဒီလ ရက် {d} ရက် × {t} = {b} ဖြစ်ပါတယ်။ ဒီလအတွက် ပျှမ်းမျှ သုံးနိုင်ငွေပါ။',
     tourPhoto:'Profile ပုံ ပြောင်းမလား?', tourName:'Username ပြောင်းမလား?',
     tourNow:'အခုလုပ်မယ်', tourLater:'နောက်မှ',
     fillFirst:'ပေးထားသော အချက်အလက်များ အား အရင် ဖြည့်ပါ',
@@ -457,12 +469,12 @@ var I18N = {
     backupSaved:'Backup file saved', importDone:'Backup restored', importFail:'Invalid backup',
     saveDay:'Save', enterAmount:'Enter an amount', deleted:'Deleted', amountPh:'Amount', creditBy:'Developed by Min Khant',
     editNameHint:'Type your name', photoFail:'Could not load photo',
-    monthTotal:'Total', monthDays:'{m} has only {x} days',
+    monthTotal:'Average', monthDays:'{m} has only {x} days',
     paydayMonth:'This month, {m} ends on day {x}. Please enter a payday from 1 to {x}.',
     todayIs:'Today, {d} {m} {y}', monthEnds:'{m} ends on the {x}',
     profileHint:'To change your name and profile photo, tap the username and profile photo above.',
     budgetWhy:'Why?',
-    budgetWhyText:'Your daily average is set to {t}, so {d} days this month × {t} = {b}. That is your total budget until the end of this month.',
+    budgetWhyText:'Your daily average is set to {t}, so {d} days this month × {t} = {b}. That is the average amount you can spend this month.',
     tourPhoto:'Change your profile photo?', tourName:'Change your username?',
     tourNow:'Do it now', tourLater:'Later',
     fillFirst:'Please fill in the information first',
@@ -1004,7 +1016,7 @@ function headerHTML(){
     namePart + '</div>' +
     '<div class="topbtns">' +
     '<button type="button" class="iconbtn" data-action="theme-toggle">' + icon(dark ? 'sun' : 'moon') + '</button>' +
-    '<button type="button" class="iconbtn" data-action="lang-toggle" style="font-size:13px;font-weight:700">' + (state.settings.lang === 'my' ? 'EN' : 'မြန်မာ') + '</button>' +
+    '<button type="button" class="langbtn" data-action="lang-toggle">' + (state.settings.lang === 'my' ? 'EN' : 'မြန်မာ') + '</button>' +
     '</div>' +
     '<input type="file" id="photoInput" accept="image/*" style="display:none"></header>';
 }
@@ -1268,10 +1280,10 @@ function dayViewHTML(){
   var h = headerHTML();
   h += searchHTML();
   h += '<div class="datenav">' +
-    '<button type="button" class="arrow" data-action="nav-prev">&#8249;</button>' +
+    '<button type="button" class="arrow" data-action="nav-prev">' + icon('chevL') + '</button>' +
     '<div class="d"><div class="date">' + esc(formatDateLong(iso)) + '</div>' +
     '<div class="wd">' + esc(weekdayName(iso)) + (isToday(iso) ? ' · ' + esc(t('today')) : '') + '</div></div>' +
-    '<button type="button" class="arrow" data-action="nav-next">&#8250;</button></div>';
+    '<button type="button" class="arrow" data-action="nav-next">' + icon('chevR') + '</button></div>';
   h += '<div class="chips" id="chipRow">';
   CATS.forEach(function(c){
     var active = draft && draft.kind === 'expense' && draft.cat === c.id && draft.iso === iso ? ' active' : '';
