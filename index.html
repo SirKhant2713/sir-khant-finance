@@ -38,22 +38,24 @@
      Deliberately transparent — glass you cannot see through is not glass. */
   --glass-bg:linear-gradient(135deg, rgba(255,255,255,.42), rgba(255,255,255,.22));
   --glass-border:rgba(255,255,255,.65);
+  --glass-border-strong:rgba(30,58,95,.30);
   --glass-hi:rgba(255,255,255,.8);
   --glass-shadow:0 10px 32px rgba(26,34,51,.14), inset 0 2px 1px rgba(255,255,255,.8), inset 0 -1px 1px rgba(255,255,255,.3), inset 1px 0 1px rgba(255,255,255,.3), inset -1px 0 1px rgba(255,255,255,.3);
-  --card-glass:linear-gradient(135deg, rgba(255,253,246,.58), rgba(255,253,246,.45));
+  --card-glass:linear-gradient(135deg, rgba(255,253,246,.74), rgba(255,253,246,.62));
 }
 [data-theme="dark"]{
   --paper:#0e1622; --card:#16233a; --ink:#ece8dc; --ink-soft:#a8b0c2;
   --line:#2a3a52; --line-strong:#46587a; --green:#3d6a9e; --green-soft:#1a2a3f;
-  --green-ink:#d4af6a; --green-fill:#c9a24b; --clay:#c9a24b; --warn:#d9a55c; --warn-bg:#3a2f1c;
+  --green-ink:#cbb489; --green-fill:#bfa065; --clay:#bfa065; --warn:#d9a55c; --warn-bg:#3a2f1c;
   --danger:#e08a7a; --input-bg:#0e1622; --chip-bg:#1e2c44;
   --shadow:0 1px 3px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
   --shadow-lg:0 2px 6px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.3);
   --glass-bg:linear-gradient(135deg, rgba(60,85,130,.34), rgba(22,35,58,.22));
   --glass-border:rgba(255,255,255,.20);
+  --glass-border-strong:rgba(255,255,255,.24);
   --glass-hi:rgba(255,255,255,.28);
   --glass-shadow:0 10px 32px rgba(0,0,0,.4), inset 0 2px 1px rgba(255,255,255,.28), inset 0 -1px 1px rgba(255,255,255,.1), inset 1px 0 1px rgba(255,255,255,.12), inset -1px 0 1px rgba(255,255,255,.12);
-  --card-glass:linear-gradient(135deg, rgba(30,45,72,.52), rgba(22,35,58,.4));
+  --card-glass:linear-gradient(135deg, rgba(30,45,72,.64), rgba(22,35,58,.52));
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{margin:0; padding:0;}
@@ -74,14 +76,16 @@ input, textarea{ -webkit-user-select:text; user-select:text; }
    instead of plain frosted glass. Transform-only animation: cheap. */
 .aurora{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;}
 .aurora i{position:absolute; border-radius:50%; will-change:transform;}
-.aurora .b1{width:520px; height:420px; right:-120px; top:-100px; background:radial-gradient(circle, rgba(212,175,106,.75), transparent 70%); animation:drift1 26s ease-in-out infinite alternate;}
-.aurora .b2{width:600px; height:480px; left:-160px; top:18%; background:radial-gradient(circle, rgba(44,82,130,.65), transparent 70%); animation:drift2 32s ease-in-out infinite alternate;}
-.aurora .b3{width:480px; height:380px; right:-100px; top:52%; background:radial-gradient(circle, rgba(217,165,92,.55), transparent 70%); animation:drift3 24s ease-in-out infinite alternate;}
-.aurora .b4{width:580px; height:440px; left:-140px; bottom:-120px; background:radial-gradient(circle, rgba(44,82,130,.5), transparent 70%); animation:drift4 30s ease-in-out infinite alternate;}
-[data-theme="dark"] .aurora .b1{background:radial-gradient(circle, rgba(212,175,106,.42), transparent 70%);}
-[data-theme="dark"] .aurora .b2{background:radial-gradient(circle, rgba(80,130,190,.6), transparent 70%);}
-[data-theme="dark"] .aurora .b3{background:radial-gradient(circle, rgba(217,165,92,.32), transparent 70%);}
-[data-theme="dark"] .aurora .b4{background:radial-gradient(circle, rgba(80,130,190,.45), transparent 70%);}
+/* Blobs live at the corners, not mid-screen: colour behind form fields
+   and body text reads as stains, not ambience. */
+.aurora .b1{width:600px; height:480px; right:-140px; top:-120px; background:radial-gradient(circle, rgba(212,175,106,.6), transparent 70%); animation:drift1 26s ease-in-out infinite alternate;}
+.aurora .b2{width:680px; height:520px; left:-180px; top:-10%; background:radial-gradient(circle, rgba(44,82,130,.5), transparent 70%); animation:drift2 32s ease-in-out infinite alternate;}
+.aurora .b3{width:560px; height:440px; right:-120px; top:70%; background:radial-gradient(circle, rgba(217,165,92,.45), transparent 70%); animation:drift3 24s ease-in-out infinite alternate;}
+.aurora .b4{width:660px; height:500px; left:-160px; bottom:-140px; background:radial-gradient(circle, rgba(44,82,130,.4), transparent 70%); animation:drift4 30s ease-in-out infinite alternate;}
+[data-theme="dark"] .aurora .b1{background:radial-gradient(circle, rgba(212,175,106,.35), transparent 70%);}
+[data-theme="dark"] .aurora .b2{background:radial-gradient(circle, rgba(80,130,190,.5), transparent 70%);}
+[data-theme="dark"] .aurora .b3{background:radial-gradient(circle, rgba(217,165,92,.28), transparent 70%);}
+[data-theme="dark"] .aurora .b4{background:radial-gradient(circle, rgba(80,130,190,.38), transparent 70%);}
 @keyframes drift1{from{transform:translate(0,0) scale(1);} to{transform:translate(-70px,60px) scale(1.15);}}
 @keyframes drift2{from{transform:translate(0,0) scale(1.1);} to{transform:translate(80px,-50px) scale(.95);}}
 @keyframes drift3{from{transform:translate(0,0) scale(1);} to{transform:translate(-60px,-70px) scale(1.2);}}
@@ -133,7 +137,7 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
 .avatar svg{width:24px; height:24px;}
 .pname{font-weight:700; font-size:18px; letter-spacing:.2px; color:var(--green-ink); line-height:1.25; background:none; border:none; padding:4px 2px; text-align:left; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.pname-input{font-size:17px; font-weight:700; font-family:inherit; color:var(--ink); background:var(--glass-bg); border:1px solid rgba(176,141,62,.65); border-radius:10px; padding:6px 10px; outline:none; width:150px; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); transition:background-color .45s ease, color .45s ease;}
+.pname-input{font-size:17px; font-weight:700; font-family:inherit; color:var(--ink); background:var(--card-glass); border:1px solid rgba(176,141,62,.65); border-radius:10px; padding:6px 10px; outline:none; width:150px; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); transition:background-color .45s ease, color .45s ease;}
 .name-ok{width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.28); background:linear-gradient(135deg, rgba(30,58,95,.72), rgba(22,41,74,.62)); color:#f7f3ea; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);}
 .name-ok svg{width:18px; height:18px;}
 .topbtns{display:flex; gap:8px; flex-shrink:0;}
@@ -228,7 +232,7 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .search{position:relative; margin-bottom:14px;}
 .search input{
   width:100%; padding:11px 13px; font-size:15px; font-family:inherit; color:var(--ink);
-  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:12px; outline:none;
+  background:var(--card-glass); border:1px solid var(--glass-border-strong); border-radius:12px; outline:none;
   -webkit-backdrop-filter:blur(18px) saturate(1.5); backdrop-filter:blur(18px) saturate(1.5);
   box-shadow:inset 0 1px 0 var(--glass-hi);
   transition:background-color .45s ease, color .45s ease, border-color .2s ease, box-shadow .2s ease;
@@ -246,7 +250,7 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .chips::-webkit-scrollbar{display:none;}
 .chip{
   display:inline-flex; align-items:center; gap:7px; flex-shrink:0;
-  border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--ink);
+  border:1px solid var(--glass-border-strong); background:var(--glass-bg); color:var(--ink);
   -webkit-backdrop-filter:blur(18px) saturate(1.5); backdrop-filter:blur(18px) saturate(1.5);
   border-radius:99px; padding:8px 13px 8px 9px; font-size:14px; box-shadow:var(--glass-shadow);
 }
@@ -261,14 +265,14 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 .draft-fields{display:flex; gap:8px;}
 .draft-fields input[type=number]{
   width:46%; text-align:right; font-size:17px; font-weight:700; font-family:inherit; color:var(--ink);
-  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:10px; padding:10px; outline:none;
+  background:var(--card-glass); border:1px solid var(--glass-border-strong); border-radius:10px; padding:10px; outline:none;
   -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
   box-shadow:inset 0 1px 0 var(--glass-hi);
 }
 .draft-fields input[type=number]:focus{border-color:rgba(176,141,62,.7); box-shadow:inset 0 1px 0 var(--glass-hi), 0 0 0 3px rgba(212,175,106,.25);}
 .draft-fields .note-in{
   flex:1; min-width:0; font-size:14px; font-family:inherit; color:var(--ink);
-  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:10px; padding:10px; outline:none;
+  background:var(--card-glass); border:1px solid var(--glass-border-strong); border-radius:10px; padding:10px; outline:none;
   -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
   box-shadow:inset 0 1px 0 var(--glass-hi);
 }
@@ -321,18 +325,30 @@ table.ledger .note-in{
 .totalbar .row.big{font-size:18px; font-weight:700; color:var(--green-ink);}
 .totalbar .row .rem{color:var(--green-fill); font-weight:700;}
 /* ---------- setup ---------- */
-.setup-hero{margin:6px 0 18px; border-radius:18px; overflow:hidden; box-shadow:var(--shadow-lg);}
-.setup-hero .hero-brand{height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:linear-gradient(135deg,#0a1626,#122a45 55%,#1e3a5f); color:#f7f3ea;}
+.setup-hero{margin:6px 0 18px; border-radius:18px; overflow:hidden; box-shadow:var(--glass-shadow); border:1px solid rgba(255,255,255,.25);}
+/* One flowing glass intro panel: logo, wordmark, gold rule, title, sub.
+   Translucent navy, so the aurora glows through it instead of a hard
+   solid block. */
+.setup-hero .hero-brand{padding:28px 20px 24px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, rgba(14,34,64,.66), rgba(30,58,95,.55)); color:#f7f3ea; -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4); text-align:center; position:relative;}
+.setup-hero .hero-brand::after{content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.14) 46%, rgba(255,255,255,.03) 54%, transparent 68%);}
 .setup-hero .hero-brand svg{width:64px; height:64px; color:#d4af6a;}
 .setup-hero .hero-brand .w{font-size:20px; font-weight:800; letter-spacing:1px;}
-.setup-hero .cap{padding:14px 16px; background:var(--green); color:#f7f3ea;}
-.setup-hero .cap .t{font-size:20px; font-weight:700;}
-.setup-hero .cap .s{font-size:13px; opacity:.85;}
+.setup-hero .hero-brand .rule{width:44px; height:2px; background:linear-gradient(90deg, transparent, #d4af6a, transparent); border-radius:2px; margin:4px 0;}
+.setup-hero .hero-brand .t{font-size:20px; font-weight:700;}
+.setup-hero .hero-brand .s{font-size:13px; opacity:.85;}
+/* The form drifts in one field at a time, like an introduction.
+   Scoped to .setup-view.intro: the class is only on the first render. */
+.setup-view.intro .setup-form .field{animation:fadeUp .5s ease both;}
+.setup-view.intro .setup-form .field:nth-child(2){animation-delay:.08s;}
+.setup-view.intro .setup-form .field:nth-child(3){animation-delay:.16s;}
+.setup-view.intro .agree-row{animation:fadeUp .5s .24s ease both;}
+.setup-view.intro button[data-action="setup-start"]{animation:fadeUp .5s .32s ease both;}
 .field{margin-bottom:16px;}
-.field label{display:block; font-size:13.5px; color:var(--ink-soft); margin-bottom:6px;}
+.field label{display:block; font-size:13.5px; color:var(--ink); font-weight:600; margin-bottom:6px;}
 .field input{
   width:100%; padding:12px 13px; font-size:17px; font-family:inherit; color:var(--ink);
-  background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:12px; outline:none;
+  background:var(--card-glass); border:1px solid var(--glass-border-strong); border-radius:12px; outline:none;
   -webkit-backdrop-filter:blur(18px) saturate(1.5); backdrop-filter:blur(18px) saturate(1.5);
   box-shadow:inset 0 1px 0 var(--glass-hi);
   transition:background-color .45s ease, color .45s ease, border-color .2s ease, box-shadow .2s ease;
@@ -349,7 +365,8 @@ table.ledger .note-in{
 /* ---------- budget explainer + first-run tour ---------- */
 .whyrow{text-align:right; margin-top:2px;}
 .whylink{background:none; border:none; padding:2px 0; font-size:12.5px; color:var(--green); text-decoration:underline; cursor:pointer; font-family:inherit;}
-.whybox{background:var(--chip-bg); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.6; color:var(--ink-soft); margin-top:6px;}
+.whybox{background:var(--card-glass); border:1px solid var(--glass-border); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.6; color:var(--ink); margin-top:6px; overflow:hidden; max-height:200px; opacity:1; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); transition:max-height .4s ease, opacity .3s ease, padding .4s ease, margin .4s ease, border-width .4s ease;}
+.whybox.closed{max-height:0; opacity:0; padding-top:0; padding-bottom:0; margin-top:0; border-width:0;}
 .tour-overlay{position:fixed; inset:0; background:rgba(20,16,10,.55); z-index:90;}
 .tour-ring{position:fixed; display:none; border:2.5px solid #fff; border-radius:50%; box-shadow:0 0 0 4px rgba(255,255,255,.22); animation:tourPulse 1.3s ease-out infinite; pointer-events:none;}
 .tour-ring.rect{border-radius:14px;}
@@ -371,7 +388,7 @@ table.ledger .note-in{
 .modal-card{background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--glass-shadow); padding:20px; max-width:420px; width:100%; max-height:80vh; display:flex; flex-direction:column; animation:fadeUp .3s ease both; -webkit-backdrop-filter:blur(28px) saturate(1.5); backdrop-filter:blur(28px) saturate(1.5);}
 .modal-card h3{margin:0 0 12px; font-size:17px; color:var(--green-ink);}
 .modal-body{font-size:14px; line-height:1.7; color:var(--ink-soft); white-space:pre-line; overflow-y:auto; margin-bottom:16px;}
-.dateline{text-align:center; font-size:13px; color:var(--ink-soft); margin:0 0 12px;}
+.dateline{text-align:center; font-size:13px; color:var(--ink); font-weight:500; margin:0 0 12px;}
 .setrow h3{margin:0 0 10px; font-size:15px; color:var(--green-ink);}
 .seg{display:flex; gap:8px;}
 .seg .btn.on{background:var(--green); border-color:var(--green); color:#f7f3ea; font-weight:700;}
@@ -411,6 +428,14 @@ table.ledger .note-in{
   border:1px solid rgba(255,255,255,.45);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
   transition:left .45s cubic-bezier(.34,1.4,.64,1), width .45s cubic-bezier(.34,1.4,.64,1); pointer-events:none;}
+/* In dark mode a gold fill reads as muddy olive — a frosted pill with a
+   gold rim instead. */
+[data-theme="dark"] .tab-glide{
+  background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  border:1px solid rgba(212,175,106,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);}
+/* The saturated category colours look AI-generated on a dark background. */
+[data-theme="dark"] .donut-wrap svg{filter:saturate(.65) brightness(.92);}
 .fab{
   position:fixed; right:18px; bottom:calc(88px + env(safe-area-inset-bottom)); z-index:41;
   width:56px; height:56px; border-radius:50%; border:1px solid rgba(255,255,255,.55);
@@ -421,7 +446,7 @@ table.ledger .note-in{
 }
 .fab::after{content:''; position:absolute; inset:0; border-radius:50%; pointer-events:none;
   background:radial-gradient(circle at 28% 22%, rgba(255,255,255,.55), transparent 55%);}
-[data-theme="dark"] .fab{color:#0e1622;}
+[data-theme="dark"] .fab{color:#0e1622; background:linear-gradient(135deg, rgba(212,175,106,.62), rgba(176,141,62,.5));}
 /* ---------- splash (uabpay-style launch screen, navy + gold) ---------- */
 #splash{position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;
   background:linear-gradient(135deg,#070f1c,#0e2240 35%,#1e3a5f 60%,#0a1626);
@@ -460,7 +485,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Your Wallet';
-var APP_VERSION = '1.0.19';
+var APP_VERSION = '1.0.20';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -1045,6 +1070,10 @@ var budgetWhyOpen = false;
 var agreeChecked = false;
 var policyOpen = false;
 var exitOpen = false;
+/* The setup intro stagger plays once per setup visit, never again on
+   re-renders (agree toggle, theme switch) — replaying it would feel
+   like the page keeps refreshing. */
+var setupIntroPlayed = false;
 /* Browser Back guard (PWA/web only — the APK delegates to handleBack
    through MainActivity). A sentinel history entry sits on top of the
    stack, so every Back pops it and lands in onPopState instead of
@@ -1253,24 +1282,28 @@ function setupViewHTML(){
     dailyTarget: state.setup.dailyTarget || ''
   };
   var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
-  var h = '<div class="setup-hero"><div class="hero-brand">' + icon('wallet') + '<div class="w">' + esc(APP_NAME) + '</div></div>' +
-    '<div class="cap"><div class="t">' + esc(t('setupTitle')) + '</div>' +
+  var introCls = setupIntroPlayed ? '' : ' intro';
+  setupIntroPlayed = true;
+  var h = '<div class="setup-view' + introCls + '"><div class="setup-hero"><div class="hero-brand">' + icon('wallet') + '<div class="w">' + esc(APP_NAME) + '</div>' +
+    '<div class="rule"></div>' +
+    '<div class="t">' + esc(t('setupTitle')) + '</div>' +
     '<div class="s">' + esc(t('setupSub')) + '</div></div></div>';
   h += '<div class="dateline">' + esc(todayLine()) + '</div>';
-  h += '<div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
+  h += '<div class="setup-form"><div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
     '<input id="setupBal" type="number" inputmode="numeric" min="0" value="' + esc(setupDraft.balance) + '"></div>';
   h += '<div class="field"><label>' + esc(t('paydayDay')) + '</label>' +
     '<input id="setupPay" type="number" inputmode="numeric" min="1" max="31" value="' + esc(setupDraft.paydayDay) + '"></div>';
   h += '<div class="field"><label>' + esc(t('dailyTarget')) + ' (' + esc(t('kyat')) + ' ' + esc(t('perDay')) + ')</label>' +
     '<input id="setupTgt" type="number" inputmode="numeric" min="0" value="' + esc(setupDraft.dailyTarget) + '">' +
     '<button type="button" class="suggest-chip" id="suggestChip" data-action="use-suggest">' +
-    esc(t('suggestTarget')) + ': ' + fmt(sug) + ' ' + esc(t('kyat')) + esc(t('perDay')) + '</button></div>';
+    esc(t('suggestTarget')) + ': ' + fmt(sug) + ' ' + esc(t('kyat')) + esc(t('perDay')) + '</button></div></div>';
   h += '<button type="button" class="agree-row" data-action="toggle-agree">' +
     '<span class="agree-check' + (agreeChecked ? ' on' : '') + '">' + (agreeChecked ? icon('check') : '') + '</span>' +
     '<span class="agree-txt">' + esc(t('agreeLabel')) + '</span></button>';
   h += '<div class="policyrow"><button type="button" class="policylink" data-action="open-policy">' + esc(t('privacyPolicy')) + '</button></div>';
   h += '<button type="button" class="btn primary big" data-action="setup-start">' + esc(t('start')) + '</button>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  h += '</div>';
   return h;
 }
 /* Privacy Policy modal (setup + settings). The policy text lives in I18N
@@ -1332,7 +1365,10 @@ function budgetHTML(){
       '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b><span data-countup="' + mt.expenses + '">' + fmt(mt.expenses) + '</span></b></span>' +
       '<span>' + esc(t('monthTotal')) + ': <b>' + fmt(budget) + '</b> ' + esc(t('kyat')) + '</span></div>';
     h += '<div class="whyrow"><button type="button" class="whylink" data-action="toggle-budget-why">' + esc(t('budgetWhy')) + '</button></div>';
-    if (budgetWhyOpen) h += '<div class="whybox">' + esc(budgetWhyText(key, budget)) + '</div>';
+    /* Always in the DOM: the toggle only flips the .closed class, so
+       opening it never re-renders the page (no refresh feeling, and the
+       count-up numbers do not restart from 0). */
+    h += '<div class="whybox' + (budgetWhyOpen ? '' : ' closed') + '" id="budgetWhy">' + esc(budgetWhyText(key, budget)) + '</div>';
   } else {
     h += '<div class="budgetrow"><span>' + esc(t('spentThisMonth')) + ': <b>' + fmt(mt.expenses) + '</b></span>' +
       '<span>' + esc(t('incomeThisMonth')) + ': <b>' + fmt(mt.income) + '</b></span></div>';
@@ -1527,7 +1563,9 @@ function render(){
     if (ni && ni.focus){ ni.focus(); if (ni.select) ni.select(); }
   }
   if (newView) lastViewKey = key;
-  if (view.name === 'home' && state.setup.done) animateCountUps();
+  /* Count-ups only when the view itself changes: replaying them on every
+     re-render (theme toggle, save, ...) makes the numbers flicker from 0. */
+  if (newView && view.name === 'home' && state.setup.done) animateCountUps();
 }
 function setHash(hash, push){
   if (typeof window === 'undefined' || !window.history) return;
@@ -1778,10 +1816,15 @@ function handleClick(e){
       if (pi && pi.click) pi.click();
       break;
     }
-    case 'toggle-budget-why':
+    case 'toggle-budget-why': {
       budgetWhyOpen = !budgetWhyOpen;
-      render();
+      var wb = el('budgetWhy');
+      if (wb && wb.classList){
+        if (budgetWhyOpen) wb.classList.remove('closed');
+        else wb.classList.add('closed');
+      }
       break;
+    }
     case 'tour-now': {
       if (tourStep === 0){
         tourStep = 1;
@@ -1895,6 +1938,7 @@ function handleClick(e){
         editingName = false;
         tourStep = null;
         budgetWhyOpen = false;
+        setupIntroPlayed = false;
         agreeChecked = false;
         policyOpen = false;
         persist();
@@ -2152,6 +2196,7 @@ if (typeof module !== 'undefined' && module.exports){
     get tourStep(){ return tourStep; },
     setTourStep: function(s){ tourStep = s; },
     get budgetWhyOpen(){ return budgetWhyOpen; },
+    get setupIntroPlayed(){ return setupIntroPlayed; },
     get agreeChecked(){ return agreeChecked; },
     get policyOpen(){ return policyOpen; },
     budgetWhyText: budgetWhyText, tourHTML: tourHTML, positionTour: positionTour,
