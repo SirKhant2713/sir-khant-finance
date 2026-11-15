@@ -91,7 +91,14 @@ input, textarea{ -webkit-user-select:text; user-select:text; }
 @keyframes drift3{from{transform:translate(0,0) scale(1);} to{transform:translate(-60px,-70px) scale(1.2);}}
 @keyframes drift4{from{transform:translate(0,0) scale(1);} to{transform:translate(70px,-60px) scale(1.1);}}
 #app{max-width:560px; margin:0 auto; padding:14px 16px 110px;}
-@keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+@keyframes viewEnter{from{opacity:.3; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+.view-enter{animation:viewEnter .35s ease both;}
+@keyframes fadeUp{from{opacity:.3; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+/* Day-page slide: arrow taps turn the page sideways. */
+.day-slide-left{animation:slideLeft .4s cubic-bezier(.22,.9,.32,1) both;}
+@keyframes slideLeft{from{opacity:.3; transform:translateX(28px);} to{opacity:1; transform:translateX(0);}}
+.day-slide-right{animation:slideRight .4s cubic-bezier(.22,.9,.32,1) both;}
+@keyframes slideRight{from{opacity:.3; transform:translateX(-28px);} to{opacity:1; transform:translateX(0);}}
 .fade-up{animation:fadeUp .4s ease both;}
 button{font-family:inherit; cursor:pointer; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease, border-color .2s ease, box-shadow .18s ease, color .2s ease;}
 button:active{transform:translateY(-2px); box-shadow:0 8px 16px rgba(38,34,26,.18);}
@@ -488,7 +495,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Your Wallet';
-var APP_VERSION = '1.0.22';
+var APP_VERSION = '1.0.24';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -1096,6 +1103,16 @@ function applyTheme(){
   }
 }
 var toastTimer = null;
+/* Re-run the view fade/slide-in animation. render() only does this when
+   the view changes, so theme/language switches (same view) call this to
+   animate the swap instead of snapping. */
+function swapView(){
+  var vb = el('viewBody');
+  if (!vb || !vb.classList) return;
+  vb.classList.remove('view-enter');
+  void vb.offsetWidth;
+  vb.classList.add('view-enter');
+}
 function showToast(msg){
   var t = el('toast');
   if (!t) return;
@@ -1122,9 +1139,17 @@ function toggleBalance(){
   if (balanceHidden) showBalance();
   else hideBalance();
 }
-/* The dashboard count-up plays once per session: replaying it on every
-   return home makes the balance flicker through random-looking numbers. */
-var countUpsDone = false;
+/* Arrow day-change direction ('left' = next day, 'right' = previous day).
+   Set by the arrow handlers, consumed by render() + dayViewHTML. */
+var slideDir = null;
+/* A light tactile tick on primary taps (Android only; no-op elsewhere).
+   8ms is a tap, not a buzz. */
+function tick(){
+  try {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(8);
+  } catch (e) {}
+}
+/* Animated count-up for dashboard numbers (no-op without a real DOM). */
 function animateCountUps(){
   if (typeof document === 'undefined' || !document.querySelectorAll) return;
   var nodes = document.querySelectorAll('[data-countup]');
@@ -1459,6 +1484,10 @@ function dayViewHTML(){
   var total = dayExpense(day), inc = dayIncome(day);
   var rem = remainingAll();
   var h = headerHTML();
+  /* Arrow day-changes slide the content sideways like turning a page:
+     next day enters from the right, previous day from the left. */
+  var dir = slideDir;
+  h += '<div class="day-body' + (dir ? ' day-slide-' + dir : '') + '">';
   h += searchHTML();
   h += '<div class="datenav">' +
     '<button type="button" class="arrow" data-action="nav-prev">' + icon('chevL') + '</button>' +
@@ -1481,6 +1510,7 @@ function dayViewHTML(){
   h += '<div style="margin-top:12px"><button type="button" class="btn" style="width:100%" data-action="add-income">+ ' + esc(t('addIncome')) + '</button></div>';
   h += '</div>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
+  h += '</div>';
   return h;
 }
 
@@ -1538,11 +1568,15 @@ function render(){
      which is what left the tab bar scrolling away with the page. The tab
      bar, FAB, tour and modals are siblings of the wrapper, so they stay
      pinned to the viewport on every view. */
-  /* No entrance fade on the view wrapper: during rapid tab taps the fade
+  /* The view fades + rises in on every navigation — but from 30% opacity,
+     never from invisible: during rapid tab taps the old from-0 fade
      restarted from transparent every time, so the screen looked blank and
-     stuck. Views appear instantly; the home cards still cascade in gently
-     on their own stagger. */
-  html = '<div class="view-body" id="viewBody">' + html + '</div>';
+     stuck. From 30% the content is always visible and the feel stays.
+     Arrow day-changes skip the fade: the day content slides sideways
+     instead (see dayViewHTML). */
+  var enterCls = (newView && !slideDir) ? ' view-enter' : '';
+  html = '<div class="view-body' + enterCls + '" id="viewBody">' + html + '</div>';
+  slideDir = null;
   if (view.name === 'home' && state.setup.done) html += '<button type="button" class="fab" data-action="fab-add">+</button>';
   html += tabbarHTML();
   if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
@@ -1562,13 +1596,9 @@ function render(){
     if (ni && ni.focus){ ni.focus(); if (ni.select) ni.select(); }
   }
   if (newView) lastViewKey = key;
-  /* Count-ups only when the view itself changes, and only the first time
-     home is visited: replaying them on every re-render (theme toggle,
-     save, ...) makes the numbers flicker from 0. */
-  if (newView && view.name === 'home' && state.setup.done && !countUpsDone){
-    animateCountUps();
-    countUpsDone = true;
-  }
+  /* Count-ups only when the view itself changes: replaying them on every
+     re-render (theme toggle, save, ...) makes the numbers flicker from 0. */
+  if (newView && view.name === 'home' && state.setup.done) animateCountUps();
 }
 function setHash(hash, push){
   if (typeof window === 'undefined' || !window.history) return;
@@ -1729,13 +1759,13 @@ function handleClick(e){
   var action = target.getAttribute('data-action');
   var iso = view.iso;
   switch (action){
-    case 'tab-home': goHome(false); break;
-    case 'tab-day': goToDay(todayISO(), false); break;
-    case 'tab-settings': goToSettings(false); break;
-    case 'fab-add': goToDay(todayISO(), false); break;
+    case 'tab-home': tick(); goHome(false); break;
+    case 'tab-day': tick(); goToDay(todayISO(), false); break;
+    case 'tab-settings': tick(); goToSettings(false); break;
+    case 'fab-add': tick(); goToDay(todayISO(), false); break;
     case 'toggle-balance': toggleBalance(); break;
-    case 'nav-prev': goToDay(isoAdd(iso, -1), false); break;
-    case 'nav-next': goToDay(isoAdd(iso, 1), false); break;
+    case 'nav-prev': slideDir = 'right'; tick(); goToDay(isoAdd(iso, -1), false); break;
+    case 'nav-next': slideDir = 'left'; tick(); goToDay(isoAdd(iso, 1), false); break;
     case 'goto-date': {
       var g = target.getAttribute('data-iso');
       searchText = ''; searchOpen = false;
@@ -1774,6 +1804,7 @@ function handleClick(e){
       var entry = { kind: draft.kind, cat: draft.cat, amount: amt, note: (draft.note || '').trim() };
       var saveIso = iso;
       draftSaving = true;
+      tick();
       burstDraft();
       var row = (typeof document !== 'undefined' && document.querySelector) ? document.querySelector('.draft-row') : null;
       if (row){
@@ -1868,10 +1899,10 @@ function handleClick(e){
       break;
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'lang-toggle':
       state.settings.lang = state.settings.lang === 'my' ? 'en' : 'my';
-      persist(); render(); break;
+      persist(); render(); swapView(); break;
     case 'use-suggest': {
       if (!setupDraft) break;
       var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
@@ -1942,7 +1973,6 @@ function handleClick(e){
         tourStep = null;
         budgetWhyOpen = false;
         setupIntroPlayed = false;
-        countUpsDone = false;
         agreeChecked = false;
         policyOpen = false;
         persist();
@@ -2201,12 +2231,12 @@ if (typeof module !== 'undefined' && module.exports){
     setTourStep: function(s){ tourStep = s; },
     get budgetWhyOpen(){ return budgetWhyOpen; },
     get setupIntroPlayed(){ return setupIntroPlayed; },
-    get countUpsDone(){ return countUpsDone; },
     get agreeChecked(){ return agreeChecked; },
     get policyOpen(){ return policyOpen; },
     budgetWhyText: budgetWhyText, tourHTML: tourHTML, positionTour: positionTour,
     paydayMonthError: paydayMonthError, todayLine: todayLine, ord: ord,
     hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
+    swapView: swapView,
     formatDateLong: formatDateLong, formatDateShort: formatDateShort, monthLabel: monthLabel, daysInMonth: daysInMonth,
     clampISO: clampISO, isoAdd: isoAdd, isToday: isToday, todayISO: todayISO,
     get state(){ return state; }, set state(s){ state = s; },
