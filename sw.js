@@ -1,11 +1,10 @@
-/* Sir Khant Finance (public) — offline service worker, cache-first.
+/* Your Wallet (public) — offline service worker, cache-first.
    Bump CACHE when shipping a new version of the site. */
-var CACHE = 'skf-public-v1.0.15';
+var CACHE = 'your-wallet-v1.0.16';
 var ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './logo.jpg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
