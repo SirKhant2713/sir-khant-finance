@@ -307,7 +307,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.10';
+var APP_VERSION = '1.0.11';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -849,6 +849,12 @@ var budgetWhyOpen = false;
 var agreeChecked = false;
 var policyOpen = false;
 var exitOpen = false;
+/* Browser Back guard (PWA/web only — the APK delegates to handleBack
+   through MainActivity). A sentinel history entry sits on top of the
+   stack, so every Back pops it and lands in onPopState instead of
+   leaving the page. */
+var webBackArmed = false;
+var exitingApp = false;
 function profileName(){ return (state.profile && state.profile.name) ? state.profile.name : 'username'; }
 function profilePhoto(){ return (state.profile && state.profile.photo) ? state.profile.photo : ''; }
 
@@ -1343,12 +1349,44 @@ function handleBack(){
   goHome(false);
 }
 /* Exit confirmed: in the APK the native bridge finishes the activity; on
-   the web there is nothing to close, so fall back to leaving the page. */
+   the web there is nothing to close, so go back past the sentinel and
+   the app's entry to actually leave the page. */
 function exitApp(){
   exitOpen = false;
   if (typeof AndroidBridge !== 'undefined' && AndroidBridge && AndroidBridge.exitApp){ AndroidBridge.exitApp(); return; }
-  if (typeof window !== 'undefined' && window.history && window.history.back) window.history.back();
+  if (typeof window !== 'undefined' && window.history){
+    exitingApp = true;
+    if (window.history.go) window.history.go(-2);
+    else if (window.history.back) window.history.back();
+    /* If the page is still here (a standalone PWA has nowhere to go
+       back to), drop the exit flag and re-arm the guard. */
+    setTimeout(function(){
+      if (!exitingApp) return;
+      exitingApp = false;
+      webBackArmed = false;
+      armWebBack();
+      render();
+    }, 400);
+    return;
+  }
   render();
+}
+function armWebBack(){
+  if (webBackArmed) return;
+  if (typeof AndroidBridge !== 'undefined') return;
+  if (typeof window === 'undefined' || !window.history || !window.history.pushState) return;
+  webBackArmed = true;
+  try { window.history.pushState({sentinel:true}, '', window.location.hash || '#home'); } catch (e) {}
+}
+function onPopState(e){
+  if (exitingApp) return;
+  if (e && e.state && e.state.sentinel) return;
+  handleBack();
+  /* The Back just popped the sentinel; sync the URL to the view the
+     handler landed on, then push a fresh sentinel. */
+  setHash(view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
+  webBackArmed = false;
+  armWebBack();
 }
 function exitModalHTML(){
   if (!exitOpen) return '';
@@ -1773,8 +1811,12 @@ function init(){
       if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
       e.preventDefault();
     });
-    if (typeof window !== 'undefined') window.addEventListener('hashchange', onHashChange);
+    if (typeof window !== 'undefined'){
+      window.addEventListener('hashchange', onHashChange);
+      window.addEventListener('popstate', onPopState);
+    }
   }
+  armWebBack();
   if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator &&
       typeof location !== 'undefined' && location.protocol && location.protocol.indexOf('http') === 0){
     try { navigator.serviceWorker.register('sw.js').catch(function(){}); } catch (e) {}
@@ -1796,7 +1838,10 @@ if (typeof module !== 'undefined' && module.exports){
     loadState: loadState, persist: persist,
     goHome: goHome, goToDay: goToDay, goToSettings: goToSettings, onHashChange: onHashChange,
     handleBack: handleBack, exitApp: exitApp, exitModalHTML: exitModalHTML,
+    onPopState: onPopState, armWebBack: armWebBack,
     get exitOpen(){ return exitOpen; }, setExitOpen: function(v){ exitOpen = v; },
+    get exitingApp(){ return exitingApp; }, setExitingApp: function(v){ exitingApp = v; },
+    setWebBackArmed: function(v){ webBackArmed = v; },
     render: render, init: init, handleClick: handleClick, handleInput: handleInput,
     handleChange: handleChange, handleKeyDown: handleKeyDown, exportBackup: exportBackup,
     profileName: profileName, profilePhoto: profilePhoto,
