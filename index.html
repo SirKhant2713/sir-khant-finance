@@ -91,8 +91,6 @@ input, textarea{ -webkit-user-select:text; user-select:text; }
 @keyframes drift3{from{transform:translate(0,0) scale(1);} to{transform:translate(-60px,-70px) scale(1.2);}}
 @keyframes drift4{from{transform:translate(0,0) scale(1);} to{transform:translate(70px,-60px) scale(1.1);}}
 #app{max-width:560px; margin:0 auto; padding:14px 16px 110px;}
-@keyframes viewEnter{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
-.view-enter{animation:viewEnter .35s ease both;}
 @keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 .fade-up{animation:fadeUp .4s ease both;}
 button{font-family:inherit; cursor:pointer; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease, border-color .2s ease, box-shadow .18s ease, color .2s ease;}
@@ -490,7 +488,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Your Wallet';
-var APP_VERSION = '1.0.21';
+var APP_VERSION = '1.0.22';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -1098,16 +1096,6 @@ function applyTheme(){
   }
 }
 var toastTimer = null;
-/* Re-run the view fade/slide-in animation. render() only does this when
-   the view changes, so theme/language switches (same view) call this to
-   animate the swap instead of snapping. */
-function swapView(){
-  var vb = el('viewBody');
-  if (!vb || !vb.classList) return;
-  vb.classList.remove('view-enter');
-  void vb.offsetWidth;
-  vb.classList.add('view-enter');
-}
 function showToast(msg){
   var t = el('toast');
   if (!t) return;
@@ -1134,7 +1122,9 @@ function toggleBalance(){
   if (balanceHidden) showBalance();
   else hideBalance();
 }
-/* Animated count-up for dashboard numbers (no-op without a real DOM). */
+/* The dashboard count-up plays once per session: replaying it on every
+   return home makes the balance flicker through random-looking numbers. */
+var countUpsDone = false;
 function animateCountUps(){
   if (typeof document === 'undefined' || !document.querySelectorAll) return;
   var nodes = document.querySelectorAll('[data-countup]');
@@ -1548,7 +1538,11 @@ function render(){
      which is what left the tab bar scrolling away with the page. The tab
      bar, FAB, tour and modals are siblings of the wrapper, so they stay
      pinned to the viewport on every view. */
-  html = '<div class="view-body' + (newView ? ' view-enter' : '') + '" id="viewBody">' + html + '</div>';
+  /* No entrance fade on the view wrapper: during rapid tab taps the fade
+     restarted from transparent every time, so the screen looked blank and
+     stuck. Views appear instantly; the home cards still cascade in gently
+     on their own stagger. */
+  html = '<div class="view-body" id="viewBody">' + html + '</div>';
   if (view.name === 'home' && state.setup.done) html += '<button type="button" class="fab" data-action="fab-add">+</button>';
   html += tabbarHTML();
   if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
@@ -1568,9 +1562,13 @@ function render(){
     if (ni && ni.focus){ ni.focus(); if (ni.select) ni.select(); }
   }
   if (newView) lastViewKey = key;
-  /* Count-ups only when the view itself changes: replaying them on every
-     re-render (theme toggle, save, ...) makes the numbers flicker from 0. */
-  if (newView && view.name === 'home' && state.setup.done) animateCountUps();
+  /* Count-ups only when the view itself changes, and only the first time
+     home is visited: replaying them on every re-render (theme toggle,
+     save, ...) makes the numbers flicker from 0. */
+  if (newView && view.name === 'home' && state.setup.done && !countUpsDone){
+    animateCountUps();
+    countUpsDone = true;
+  }
 }
 function setHash(hash, push){
   if (typeof window === 'undefined' || !window.history) return;
@@ -1870,10 +1868,10 @@ function handleClick(e){
       break;
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
-      persist(); render(); swapView(); break;
+      persist(); render(); break;
     case 'lang-toggle':
       state.settings.lang = state.settings.lang === 'my' ? 'en' : 'my';
-      persist(); render(); swapView(); break;
+      persist(); render(); break;
     case 'use-suggest': {
       if (!setupDraft) break;
       var sug = suggestTarget(setupDraft.balance, setupDraft.paydayDay);
@@ -1944,6 +1942,7 @@ function handleClick(e){
         tourStep = null;
         budgetWhyOpen = false;
         setupIntroPlayed = false;
+        countUpsDone = false;
         agreeChecked = false;
         policyOpen = false;
         persist();
@@ -2202,12 +2201,12 @@ if (typeof module !== 'undefined' && module.exports){
     setTourStep: function(s){ tourStep = s; },
     get budgetWhyOpen(){ return budgetWhyOpen; },
     get setupIntroPlayed(){ return setupIntroPlayed; },
+    get countUpsDone(){ return countUpsDone; },
     get agreeChecked(){ return agreeChecked; },
     get policyOpen(){ return policyOpen; },
     budgetWhyText: budgetWhyText, tourHTML: tourHTML, positionTour: positionTour,
     paydayMonthError: paydayMonthError, todayLine: todayLine, ord: ord,
     hideBalance: hideBalance, showBalance: showBalance, toggleBalance: toggleBalance,
-    swapView: swapView,
     formatDateLong: formatDateLong, formatDateShort: formatDateShort, monthLabel: monthLabel, daysInMonth: daysInMonth,
     clampISO: clampISO, isoAdd: isoAdd, isToday: isToday, todayISO: todayISO,
     get state(){ return state; }, set state(s){ state = s; },
