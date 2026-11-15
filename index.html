@@ -307,7 +307,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.9';
+var APP_VERSION = '1.0.10';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -399,6 +399,7 @@ var I18N = {
     agreeFirst:'ရှေ့ဆက်ရန် သဘောတူညီချက်ကို အရင် လက်ခံပါ',
     agreeLabel:'သဘောတူညီချက်ကို လက်ခံပါတယ်',
     privacyPolicy:'Privacy Policy', close:'ပိတ်မယ်',
+    exitTitle:'app ကနေ ထွက်မလား?', exitMsg:'ထွက်မှာ သေချာပြီလား။', exitYes:'ထွက်မယ်', exitNo:'မထွက်ဘူး',
     policyText:'Sir Khant Finance သည် သုံးစွဲသူများ၏ ကိုယ်ရေးအချက်အလက်များကို မည်သို့မျှ ရယူခြင်း၊ သိမ်းဆည်းခြင်း၊ မျှဝေခြင်း မပြုပါ။\n\nသင် ထည့်သွင်းသော ငွေကြေးမှတ်တမ်းများအားလုံးသည် သင့်ဖုန်းထဲတွင်သာ သိမ်းဆည်းထားပြီး အင်တာနက်သို့ ပေးပို့ခြင်း လုံးဝ မရှိပါ။\n\nဤအက်ပ်ကို သုံးစွဲသူများ၏ နေ့စဉ် ငွေကြေးအချက်အလက်များကို စနစ်တကျ စီမံခန့်ခွဲနိုင်စေရန် ရည်ရွယ်၍ ထုတ်လုပ်ထားခြင်း ဖြစ်ပါသည်။\n\nဤသဘောတူညီချက်ကို လက်ခံပါက "သဘောတူညီချက်ကို လက်ခံပါတယ်" ကို အမှန်ခြစ်ပြီး ရှေ့ဆက်နိုင်ပါသည်။\n\nထုတ်လုပ်သူ — Min Khant',
     reset:'အချက်အလက် အားလုံး ဖျက်မယ်', resetConfirm:'သေချာလား — ထပ်နှိပ်ပြီး ဖျက်မယ်',
     resetDone:'ဖျက်ပြီးပါပြီ', perDay:'/နေ့', untilPayday:'လစာရက်ထိ',
@@ -441,6 +442,7 @@ var I18N = {
     agreeFirst:'Please accept the agreement to continue',
     agreeLabel:'I accept the agreement',
     privacyPolicy:'Privacy Policy', close:'Close',
+    exitTitle:'Exit the app?', exitMsg:'Are you sure you want to exit?', exitYes:'Yes', exitNo:'No',
     policyText:'Sir Khant Finance does not collect, store, or share any of your personal information.\n\nAll the financial records you enter are stored only on your device and are never sent over the internet.\n\nThis app is made to help you manage your daily finances in an organized way.\n\nIf you agree to these terms, check "I accept the agreement" to continue.\n\nDeveloped by Min Khant',
     reset:'Delete all data', resetConfirm:'Sure? Tap again to delete',
     resetDone:'Deleted', perDay:'/day', untilPayday:'until payday',
@@ -846,6 +848,7 @@ var budgetWhyOpen = false;
    and the Privacy Policy modal. Neither is persisted. */
 var agreeChecked = false;
 var policyOpen = false;
+var exitOpen = false;
 function profileName(){ return (state.profile && state.profile.name) ? state.profile.name : 'username'; }
 function profilePhoto(){ return (state.profile && state.profile.photo) ? state.profile.photo : ''; }
 
@@ -863,11 +866,11 @@ var toastTimer = null;
    the view changes, so theme/language switches (same view) call this to
    animate the swap instead of snapping. */
 function swapView(){
-  var root = el('app');
-  if (!root || !root.classList) return;
-  root.classList.remove('view-enter');
-  void root.offsetWidth;
-  root.classList.add('view-enter');
+  var vb = el('viewBody');
+  if (!vb || !vb.classList) return;
+  vb.classList.remove('view-enter');
+  void vb.offsetWidth;
+  vb.classList.add('view-enter');
 }
 function showToast(msg){
   var t = el('toast');
@@ -1169,7 +1172,6 @@ function homeViewHTML(){
   h += donutHTML();
   h += barsHTML();
   h += recentHTML();
-  h += '<button type="button" class="fab" data-action="fab-add">+</button>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
   return h;
 }
@@ -1227,14 +1229,8 @@ function dayViewHTML(){
 function settingsViewHTML(){
   var h = headerHTML();
   h += '<div class="setrow"><div class="hint">' + esc(t('profileHint')) + '</div></div>';
-  h += '<div class="setrow"><h3>' + esc(t('theme')) + '</h3><div class="seg">' +
-    '<button type="button" class="btn' + (state.settings.theme === 'light' ? ' on' : '') + '" data-action="set-theme" data-theme="light">' + esc(t('light')) + '</button>' +
-    '<button type="button" class="btn' + (state.settings.theme === 'dark' ? ' on' : '') + '" data-action="set-theme" data-theme="dark">' + esc(t('dark')) + '</button>' +
-  '</div></div>';
-  h += '<div class="setrow"><h3>' + esc(t('lang')) + '</h3><div class="seg">' +
-    '<button type="button" class="btn' + (state.settings.lang === 'my' ? ' on' : '') + '" data-action="set-lang" data-lang="my">' + esc(t('myanmar')) + '</button>' +
-    '<button type="button" class="btn' + (state.settings.lang === 'en' ? ' on' : '') + '" data-action="set-lang" data-lang="en">' + esc(t('english')) + '</button>' +
-  '</div></div>';
+  /* Theme + language live in the header on every view, so Settings does
+     not repeat them. */
   h += '<div class="setrow"><h3>' + esc(t('editSetup')) + '</h3>' +
     '<div class="field"><label>' + esc(t('startBalance')) + ' (' + esc(t('kyat')) + ')</label>' +
     '<input id="editBal" type="number" inputmode="numeric" min="0" value="' + (state.setup.balance || '') + '"></div>' +
@@ -1266,6 +1262,7 @@ function render(){
   var cr0 = el('chipRow');
   if (cr0 && typeof cr0.scrollLeft === 'number') chipScroll = cr0.scrollLeft;
   var key = view.name + '|' + (view.iso || '');
+  var newView = (key !== lastViewKey);
   /* First-run tour: start it the first time a finished setup lands on home. */
   if (view.name === 'home' && state.setup.done && !(state.settings && state.settings.tourDone) && tourStep === null) tourStep = 0;
   var html;
@@ -1273,14 +1270,22 @@ function render(){
   else if (view.name === 'home') html = homeViewHTML();
   else if (view.name === 'settings') html = settingsViewHTML();
   else html = dayViewHTML();
+  /* The view slides/fades in on its own wrapper. The animation's transform
+     must NOT sit on #app: any transformed ancestor breaks position:fixed,
+     which is what left the tab bar scrolling away with the page. The tab
+     bar, FAB, tour and modals are siblings of the wrapper, so they stay
+     pinned to the viewport on every view. */
+  html = '<div class="view-body' + (newView ? ' view-enter' : '') + '" id="viewBody">' + html + '</div>';
+  if (view.name === 'home' && state.setup.done) html += '<button type="button" class="fab" data-action="fab-add">+</button>';
   html += tabbarHTML();
   if (tourStep !== null && view.name === 'home' && state.setup.done) html += tourHTML();
   if (policyOpen) html += policyModalHTML();
+  if (exitOpen) html += exitModalHTML();
   root.innerHTML = html;
   /* New view: start at the top of the page. Without this, tapping Start
      low on the long setup form leaves home scrolled down, so the tour
      ring lands off-screen above the profile header. */
-  if (key !== lastViewKey && typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
+  if (newView && typeof window !== 'undefined' && window.scrollTo) window.scrollTo(0, 0);
   positionTour();
   var cr1 = el('chipRow');
   if (cr1 && typeof cr1.scrollLeft === 'number') cr1.scrollLeft = chipScroll;
@@ -1288,14 +1293,7 @@ function render(){
     var ni = el('nameInput');
     if (ni && ni.focus){ ni.focus(); if (ni.select) ni.select(); }
   }
-  if (key !== lastViewKey){
-    lastViewKey = key;
-    if (root.classList){
-      root.classList.remove('view-enter');
-      void root.offsetWidth;
-      root.classList.add('view-enter');
-    }
-  }
+  if (newView) lastViewKey = key;
   if (view.name === 'home' && state.setup.done) animateCountUps();
 }
 function setHash(hash, push){
@@ -1308,19 +1306,19 @@ function setHash(hash, push){
 function goHome(push){
   dayDirty = false;
   view = { name:'home', iso: clampISO(todayISO()) };
-  setHash('#home', push !== false);
+  setHash('#home', push === true);
   render();
 }
 function goToDay(iso, push){
   dayDirty = false;
   view = { name:'day', iso: clampISO(iso) };
-  setHash('#day=' + view.iso, push !== false);
+  setHash('#day=' + view.iso, push === true);
   render();
 }
 function goToSettings(push){
   dayDirty = false;
   view = { name:'settings', iso: view.iso };
-  setHash('#settings', push !== false);
+  setHash('#settings', push === true);
   render();
 }
 function onHashChange(){
@@ -1333,6 +1331,33 @@ function onHashChange(){
     view = { name:'day', iso: m ? clampISO(m[1]) : clampISO(todayISO()) };
   }
   render();
+}
+/* Android Back button: MainActivity delegates every press here, and tab
+   navigation never pushes history, so Back never walks through the views
+   the user tapped through. Day/settings go home; home asks before exit. */
+function handleBack(){
+  if (exitOpen){ exitOpen = false; render(); return; }
+  if (policyOpen){ policyOpen = false; render(); return; }
+  if (tourStep !== null){ endTour(); return; }
+  if (view.name === 'home'){ exitOpen = true; render(); return; }
+  goHome(false);
+}
+/* Exit confirmed: in the APK the native bridge finishes the activity; on
+   the web there is nothing to close, so fall back to leaving the page. */
+function exitApp(){
+  exitOpen = false;
+  if (typeof AndroidBridge !== 'undefined' && AndroidBridge && AndroidBridge.exitApp){ AndroidBridge.exitApp(); return; }
+  if (typeof window !== 'undefined' && window.history && window.history.back) window.history.back();
+  render();
+}
+function exitModalHTML(){
+  if (!exitOpen) return '';
+  return '<div class="modal-overlay" id="exitModal">' +
+    '<div class="modal-card"><h3>' + esc(t('exitTitle')) + '</h3>' +
+    '<div class="modal-body">' + esc(t('exitMsg')) + '</div>' +
+    '<div style="display:flex; gap:8px;"><button type="button" class="btn primary big" data-action="exit-yes">' + esc(t('exitYes')) + '</button>' +
+    '<button type="button" class="btn big" data-action="exit-no">' + esc(t('exitNo')) + '</button></div>' +
+    '</div></div>';
 }
 function focusAmount(kind, idx){
   if (typeof document === 'undefined' || !document.querySelector) return;
@@ -1368,17 +1393,17 @@ function handleClick(e){
   var action = target.getAttribute('data-action');
   var iso = view.iso;
   switch (action){
-    case 'tab-home': goHome(true); break;
-    case 'tab-day': goToDay(todayISO(), true); break;
-    case 'tab-settings': goToSettings(true); break;
-    case 'fab-add': goToDay(todayISO(), true); break;
+    case 'tab-home': goHome(false); break;
+    case 'tab-day': goToDay(todayISO(), false); break;
+    case 'tab-settings': goToSettings(false); break;
+    case 'fab-add': goToDay(todayISO(), false); break;
     case 'toggle-balance': toggleBalance(); break;
-    case 'nav-prev': goToDay(isoAdd(iso, -1), true); break;
-    case 'nav-next': goToDay(isoAdd(iso, 1), true); break;
+    case 'nav-prev': goToDay(isoAdd(iso, -1), false); break;
+    case 'nav-next': goToDay(isoAdd(iso, 1), false); break;
     case 'goto-date': {
       var g = target.getAttribute('data-iso');
       searchText = ''; searchOpen = false;
-      goToDay(g, true); break;
+      goToDay(g, false); break;
     }
     case 'add-cat': {
       var day = getDay(iso);
@@ -1468,17 +1493,16 @@ function handleClick(e){
       policyOpen = false;
       render();
       break;
+    case 'exit-yes': exitApp(); break;
+    case 'exit-no':
+      exitOpen = false;
+      render();
+      break;
     case 'theme-toggle':
       state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark';
       persist(); render(); swapView(); break;
     case 'lang-toggle':
       state.settings.lang = state.settings.lang === 'my' ? 'en' : 'my';
-      persist(); render(); swapView(); break;
-    case 'set-theme':
-      state.settings.theme = target.getAttribute('data-theme');
-      persist(); render(); swapView(); break;
-    case 'set-lang':
-      state.settings.lang = target.getAttribute('data-lang');
       persist(); render(); swapView(); break;
     case 'use-suggest': {
       if (!setupDraft) break;
@@ -1771,6 +1795,8 @@ if (typeof module !== 'undefined' && module.exports){
     getDay: getDay, blankDay: blankDay, hasData: hasData,
     loadState: loadState, persist: persist,
     goHome: goHome, goToDay: goToDay, goToSettings: goToSettings, onHashChange: onHashChange,
+    handleBack: handleBack, exitApp: exitApp, exitModalHTML: exitModalHTML,
+    get exitOpen(){ return exitOpen; }, setExitOpen: function(v){ exitOpen = v; },
     render: render, init: init, handleClick: handleClick, handleInput: handleInput,
     handleChange: handleChange, handleKeyDown: handleKeyDown, exportBackup: exportBackup,
     profileName: profileName, profilePhoto: profilePhoto,
