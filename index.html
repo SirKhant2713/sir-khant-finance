@@ -191,6 +191,32 @@ header.top{display:flex; align-items:center; justify-content:space-between; gap:
 }
 .chip .catic{width:26px; height:26px; border-radius:50%;}
 .chip .catic svg{width:15px; height:15px;}
+.chip.active{border-color:var(--clay); color:var(--clay);}
+/* The day view composes one entry at a time: chip -> draft -> Save. */
+.draft-row{margin-bottom:14px;}
+.draft-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.draft-head .nm{flex:1; font-size:16px; font-weight:700;}
+.draft-x{border:none; background:none; color:var(--ink-soft); font-size:22px; padding:2px 4px; line-height:1;}
+.draft-fields{display:flex; gap:8px;}
+.draft-fields input[type=number]{
+  width:46%; text-align:right; font-size:17px; font-weight:700; font-family:inherit; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--line); border-radius:10px; padding:10px; outline:none;
+}
+.draft-fields input[type=number]:focus{border-color:var(--green);}
+.draft-fields .note-in{
+  flex:1; min-width:0; font-size:14px; font-family:inherit; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--line); border-radius:10px; padding:10px; outline:none;
+}
+.draft-fields .note-in:focus{border-color:var(--green);}
+/* On save, the draft bursts into soft dust motes that drift away. */
+.burst-dot{position:fixed; border-radius:50%; pointer-events:none; z-index:9999; transition:transform .55s cubic-bezier(.17,.67,.35,1), opacity .55s ease;}
+/* Recent rows: a small trash bin at the end of each row. */
+.actrow .trash{border:none; background:none; color:var(--ink-soft); padding:6px; margin:-6px -8px -6px 0; border-radius:8px; flex-shrink:0;}
+.actrow .trash svg{width:18px; height:18px;}
+.actrow .trash:active{color:var(--danger);}
+/* Exit confirm: Yes and No are exactly equal. */
+.exit-actions{display:flex; gap:8px;}
+.exit-actions .btn{flex:1; padding:14px; font-size:17px; border-radius:12px;}
 table.ledger{width:100%; border-collapse:collapse;}
 table.ledger td{padding:11px 0; border-bottom:1px solid var(--line); vertical-align:middle;}
 table.ledger tr:last-child td{border-bottom:none;}
@@ -307,7 +333,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.11';
+var APP_VERSION = '1.0.12';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -332,7 +358,8 @@ var ICON_PATHS = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
   download: '<path d="M12 3v11"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>',
   upload: '<path d="M12 21V10"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/>',
-  check: '<path d="M4 12.5l5 5L20 6.5"/>'
+  check: '<path d="M4 12.5l5 5L20 6.5"/>',
+  trash: '<path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/>'
 };
 function icon(id){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICON_PATHS[id] || '') + '</svg>';
@@ -385,7 +412,7 @@ var I18N = {
     saveSetup:'သိမ်းမယ်', saved:'သိမ်းပြီးပါပြီ',
     backup:'အရန်သိမ်း (Backup)', exportBackup:'Backup ထုတ်မယ်', importBackup:'Backup ပြန်ထည့်မယ်',
     backupSaved:'Backup ဖိုင် သိမ်းပြီးပါပြီ', importDone:'Backup ပြန်ထည့်ပြီးပါပြီ', importFail:'Backup ဖိုင် မမှန်ပါ',
-    saveDay:'သိမ်းမယ်', creditBy:'Developed by Min Khant',
+    saveDay:'သိမ်းမယ်', enterAmount:'ငွေပမာဏ ထည့်ပါ', deleted:'ဖျက်ပြီးပါပြီ', amountPh:'ငွေပမာဏ', creditBy:'Developed by Min Khant',
     editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
     monthTotal:'စုစုပေါင်း', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
     paydayMonth:'ယခုလ {m}သည် ရက် {x} တွင် လကုန်ပါသည်။ လစာထုတ်ရက်ကို 1 ကနေ {x} အထိ ထည့်ပါ။',
@@ -428,7 +455,7 @@ var I18N = {
     saveSetup:'Save', saved:'Saved',
     backup:'Backup', exportBackup:'Export backup', importBackup:'Restore backup',
     backupSaved:'Backup file saved', importDone:'Backup restored', importFail:'Invalid backup',
-    saveDay:'Save', creditBy:'Developed by Min Khant',
+    saveDay:'Save', enterAmount:'Enter an amount', deleted:'Deleted', amountPh:'Amount', creditBy:'Developed by Min Khant',
     editNameHint:'Type your name', photoFail:'Could not load photo',
     monthTotal:'Total', monthDays:'{m} has only {x} days',
     paydayMonth:'This month, {m} ends on day {x}. Please enter a payday from 1 to {x}.',
@@ -613,7 +640,10 @@ function loadState(){
       if (typeof s.setup.dailyTarget === 'number') state.setup.dailyTarget = s.setup.dailyTarget;
       if (s.setup.done === true) state.setup.done = true;
     }
-    if (s.days && typeof s.days === 'object') state.days = s.days;
+    if (s.days && typeof s.days === 'object'){
+      state.days = s.days;
+      if (purgeJunk(state.days) > 0) persist();
+    }
     if (s.settings && typeof s.settings === 'object'){
       if (s.settings.theme === 'dark' || s.settings.theme === 'light') state.settings.theme = s.settings.theme;
       if (s.settings.lang === 'my' || s.settings.lang === 'en') state.settings.lang = s.settings.lang;
@@ -705,11 +735,13 @@ function recentActivity(n){
     var d = state.days[isos[i]];
     for (var j = (d.entries || []).length - 1; j >= 0; j--){
       var e = d.entries[j];
-      all.push({ iso: isos[i], cat: e.cat || 'other', note: e.note || '', amount: Number(e.amount) || 0, isIncome: false });
+      if (isJunk(e)) continue;
+      all.push({ iso: isos[i], cat: e.cat || 'other', note: e.note || '', amount: Number(e.amount) || 0, isIncome: false, idx: j });
     }
     for (var k = (d.income || []).length - 1; k >= 0; k--){
       var r = d.income[k];
-      all.push({ iso: isos[i], cat: 'income', note: r.note || '', amount: Number(r.amount) || 0, isIncome: true });
+      if (isJunk(r)) continue;
+      all.push({ iso: isos[i], cat: 'income', note: r.note || '', amount: Number(r.amount) || 0, isIncome: true, idx: k });
     }
   }
   return all.slice(0, n);
@@ -802,6 +834,7 @@ function importState(text){
   if (typeof s.setup.dailyTarget === 'number') next.setup.dailyTarget = s.setup.dailyTarget;
   next.setup.done = s.setup.done === true;
   next.days = s.days;
+  purgeJunk(next.days);
   if (s.settings && typeof s.settings === 'object'){
     if (s.settings.theme === 'dark' || s.settings.theme === 'light') next.settings.theme = s.settings.theme;
     if (s.settings.lang === 'my' || s.settings.lang === 'en') next.settings.lang = s.settings.lang;
@@ -836,7 +869,35 @@ var editingName = false;
 var nameDraft = '';
 /* Day dirty flag: set on any change to the current day, cleared by Save
    or by navigating away. Drives the Save button on the day view. */
-var dayDirty = false;
+/* The day view composes ONE entry at a time. A chip tap opens a draft;
+   nothing is saved until Save is tapped, so an accidental tap can never
+   create a zero-amount entry in Recent. The draft is session-only and
+   belongs to the day it was opened on. */
+var draft = null;
+function catColor(id){ for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].color; return '#8a8a7a'; }
+/* A zero-amount entry with no note carries no information — it is an
+   accidental chip tap. */
+function isJunk(e){ return (Number(e.amount) || 0) <= 0 && !(e.note || '').trim(); }
+function purgeJunk(days){
+  var removed = 0;
+  if (!days || typeof days !== 'object') return removed;
+  for (var iso in days){
+    var d = days[iso];
+    if (!d || typeof d !== 'object') continue;
+    if (Array.isArray(d.entries)){
+      var before = d.entries.length;
+      d.entries = d.entries.filter(function(e){ return !isJunk(e); });
+      removed += before - d.entries.length;
+    }
+    if (Array.isArray(d.income)){
+      var beforeI = d.income.length;
+      d.income = d.income.filter(function(r){ return !isJunk(r); });
+      removed += beforeI - d.income.length;
+    }
+    if ((!d.entries || !d.entries.length) && (!d.income || !d.income.length)) delete days[iso];
+  }
+  return removed;
+}
 /* First-run tour: coach marks that point at the profile photo, then the
    username, on the new user's first visit to the home screen. tourStep is
    null when the tour is not showing, 0 for the photo step, 1 for the name
@@ -1165,7 +1226,8 @@ function recentHTML(){
         : catIcon(it.cat)) +
       '<div class="mid"><div class="nm">' + esc(it.isIncome ? t('cat_income') : t('cat_' + it.cat)) + (it.note ? ' · ' + esc(it.note) : '') + '</div>' +
       '<div class="dt">' + esc(formatDateLong(it.iso)) + '</div></div>' +
-      '<div class="am' + (it.isIncome ? ' inc' : '') + '">' + (it.isIncome ? '+' : '−') + fmt(it.amount) + '</div></div>';
+      '<div class="am' + (it.isIncome ? ' inc' : '') + '">' + (it.isIncome ? '+' : '−') + fmt(it.amount) + '</div>' +
+      '<button type="button" class="trash" data-action="del-recent" data-iso="' + esc(it.iso) + '" data-idx="' + it.idx + '" data-income="' + (it.isIncome ? '1' : '0') + '">' + icon('trash') + '</button></div>';
   });
   h += '</div>';
   return h;
@@ -1183,19 +1245,20 @@ function homeViewHTML(){
 }
 
 /* ---------------- day view ---------------- */
-function entryRowHTML(e, i){
-  return '<tr><td class="ic">' + catIcon(e.cat) + '</td>' +
-    '<td><div class="nm">' + esc(t('cat_' + (e.cat || 'other'))) + '</div>' +
-    '<input class="note-in" type="text" placeholder="' + esc(t('note')) + '" value="' + esc(e.note || '') + '" data-entry-note="' + i + '"></td>' +
-    '<td class="am"><input type="number" inputmode="numeric" min="0" value="' + (e.amount ? e.amount : '') + '" data-entry-amount="' + i + '"></td>' +
-    '<td class="del"><button type="button" data-action="del-entry" data-idx="' + i + '">×</button></td></tr>';
-}
-function incomeRowHTML(r, i){
-  return '<tr><td class="ic"><span class="catic" style="background:var(--green-soft);color:var(--green-fill)">' + icon('income') + '</span></td>' +
-    '<td><div class="nm">' + esc(t('cat_income')) + '</div>' +
-    '<input class="note-in" type="text" placeholder="' + esc(t('note')) + '" value="' + esc(r.note || '') + '" data-income-note="' + i + '"></td>' +
-    '<td class="am"><input class="inc" type="number" inputmode="numeric" min="0" value="' + (r.amount ? r.amount : '') + '" data-income-amount="' + i + '"></td>' +
-    '<td class="del"><button type="button" data-action="del-income" data-idx="' + i + '">×</button></td></tr>';
+function draftRowHTML(){
+  if (!draft || draft.iso !== view.iso) return '';
+  var isInc = draft.kind === 'income';
+  return '<div class="card draft-row fade-up">' +
+    '<div class="draft-head">' +
+    (isInc ? '<span class="catic" style="background:var(--green-soft);color:var(--green-fill)">' + icon('income') + '</span>' : catIcon(draft.cat)) +
+    '<div class="nm">' + esc(isInc ? t('cat_income') : t('cat_' + draft.cat)) + '</div>' +
+    '<button type="button" class="draft-x" data-action="close-draft">×</button></div>' +
+    '<div class="draft-fields">' +
+    '<input type="number" inputmode="numeric" min="0" placeholder="' + esc(t('amountPh')) + '" value="' + esc(draft.amount === '' || draft.amount == null ? '' : draft.amount) + '" data-draft-amount="0">' +
+    '<input class="note-in" type="text" placeholder="' + esc(t('note')) + '" value="' + esc(draft.note || '') + '" data-draft-note="0">' +
+    '</div>' +
+    '<button type="button" class="btn primary" style="width:100%; margin-top:12px; padding:13px; font-size:16px; border-radius:12px" data-action="save-draft">' + esc(t('saveDay')) + '</button>' +
+    '</div>';
 }
 function dayViewHTML(){
   var iso = view.iso;
@@ -1211,21 +1274,18 @@ function dayViewHTML(){
     '<button type="button" class="arrow" data-action="nav-next">&#8250;</button></div>';
   h += '<div class="chips" id="chipRow">';
   CATS.forEach(function(c){
-    h += '<button type="button" class="chip" data-action="add-cat" data-cat="' + c.id + '">' + catIcon(c.id) + esc(t('cat_' + c.id)) + '</button>';
+    var active = draft && draft.kind === 'expense' && draft.cat === c.id && draft.iso === iso ? ' active' : '';
+    h += '<button type="button" class="chip' + active + '" data-action="add-cat" data-cat="' + c.id + '">' + catIcon(c.id) + esc(t('cat_' + c.id)) + '</button>';
   });
   h += '</div>';
-  h += '<div class="card"><table class="ledger">';
-  day.entries.forEach(function(e, i){ h += entryRowHTML(e, i); });
-  day.income.forEach(function(r, i){ h += incomeRowHTML(r, i); });
-  h += '</table>';
-  if (!hasData(day)) h += '<div class="empty">' + esc(t('noActivity')) + '</div>';
-  h += '<div class="totalbar">' +
+  h += draftRowHTML();
+  h += '<div class="card">' +
+    '<div class="totalbar" style="border-top:none; margin-top:0">' +
     '<div class="row big"><span>' + esc(t('dayTotal')) + '</span><span>' + fmt(total) + '</span></div>' +
     '<div class="row"><span>' + esc(t('dayIncome')) + '</span><span>+' + fmt(inc) + '</span></div>' +
     '<div class="row"><span>' + esc(t('remainingAfter')) + '</span><span class="rem">' + fmt(rem) + ' ' + esc(t('kyat')) + '</span></div>' +
   '</div>';
   h += '<div style="margin-top:12px"><button type="button" class="btn" style="width:100%" data-action="add-income">+ ' + esc(t('addIncome')) + '</button></div>';
-  if (dayDirty && hasData(day)) h += '<div style="margin-top:10px"><button type="button" class="btn primary big" data-action="save-day">' + esc(t('saveDay')) + '</button></div>';
   h += '</div>';
   h += '<div class="foot">' + esc(t('creditBy')) + ' V' + APP_VERSION + '</div>';
   return h;
@@ -1310,25 +1370,23 @@ function setHash(hash, push){
   } catch (e) {}
 }
 function goHome(push){
-  dayDirty = false;
   view = { name:'home', iso: clampISO(todayISO()) };
   setHash('#home', push === true);
   render();
 }
 function goToDay(iso, push){
-  dayDirty = false;
-  view = { name:'day', iso: clampISO(iso) };
+  var next = clampISO(iso);
+  if (draft && draft.iso !== next) draft = null;
+  view = { name:'day', iso: next };
   setHash('#day=' + view.iso, push === true);
   render();
 }
 function goToSettings(push){
-  dayDirty = false;
   view = { name:'settings', iso: view.iso };
   setHash('#settings', push === true);
   render();
 }
 function onHashChange(){
-  dayDirty = false;
   var hash = (typeof window !== 'undefined' && window.location) ? window.location.hash : '';
   if (hash === '#settings') view = { name:'settings', iso: view.iso };
   else if (hash === '#home') view = { name:'home', iso: clampISO(todayISO()) };
@@ -1336,6 +1394,7 @@ function onHashChange(){
     var m = hash.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
     view = { name:'day', iso: m ? clampISO(m[1]) : clampISO(todayISO()) };
   }
+  if (draft && view.name === 'day' && draft.iso !== view.iso) draft = null;
   render();
 }
 /* Android Back button: MainActivity delegates every press here, and tab
@@ -1393,8 +1452,8 @@ function exitModalHTML(){
   return '<div class="modal-overlay" id="exitModal">' +
     '<div class="modal-card"><h3>' + esc(t('exitTitle')) + '</h3>' +
     '<div class="modal-body">' + esc(t('exitMsg')) + '</div>' +
-    '<div style="display:flex; gap:8px;"><button type="button" class="btn primary big" data-action="exit-yes">' + esc(t('exitYes')) + '</button>' +
-    '<button type="button" class="btn big" data-action="exit-no">' + esc(t('exitNo')) + '</button></div>' +
+    '<div class="exit-actions"><button type="button" class="btn primary" data-action="exit-yes">' + esc(t('exitYes')) + '</button>' +
+    '<button type="button" class="btn" data-action="exit-no">' + esc(t('exitNo')) + '</button></div>' +
     '</div></div>';
 }
 function focusAmount(kind, idx){
@@ -1402,25 +1461,39 @@ function focusAmount(kind, idx){
   var inp = document.querySelector('input[' + kind + '="' + idx + '"]');
   if (inp) inp.focus();
 }
-/* Full re-render that keeps focus in the amount field being typed in. */
-function updateTotalsOnly(){
-  if (typeof document === 'undefined') return;
-  var root = el('app');
-  if (!root) return;
-  var active = document.activeElement;
-  var key = null, kind = null;
-  if (active && active.getAttribute){
-    if (active.getAttribute('data-entry-amount') !== null){ key = active.getAttribute('data-entry-amount'); kind = 'data-entry-amount'; }
-    else if (active.getAttribute('data-income-amount') !== null){ key = active.getAttribute('data-income-amount'); kind = 'data-income-amount'; }
-  }
-  render();
-  if (key !== null && kind && root.querySelector){
-    var inputs = root.querySelectorAll('input[' + kind + '="' + key + '"]');
-    if (inputs && inputs.length){
-      inputs[0].focus();
-      var v = inputs[0].value; inputs[0].value = ''; inputs[0].value = v;
+/* On save, the draft bursts into soft dust motes that drift away —
+   the entry is gone from the day view and lives in Recent now. */
+function burstAt(x, y, color){
+  if (typeof document === 'undefined' || !document.body || !document.createElement) return;
+  try {
+    for (var i = 0; i < 12; i++){
+      var dot = document.createElement('div');
+      dot.className = 'burst-dot';
+      var size = 4 + Math.random() * 4;
+      dot.style.width = size + 'px'; dot.style.height = size + 'px';
+      dot.style.left = x + 'px'; dot.style.top = y + 'px';
+      dot.style.background = (i % 3 === 0) ? '#b85a30' : color;
+      document.body.appendChild(dot);
+      (function(d){
+        var ang = Math.random() * Math.PI * 2;
+        var dist = 24 + Math.random() * 44;
+        var dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 14;
+        setTimeout(function(){
+          d.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(.4)';
+          d.style.opacity = '0';
+        }, 10);
+        setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 650);
+      })(dot);
     }
-  }
+  } catch (e) {}
+}
+function burstDraft(){
+  if (typeof document === 'undefined' || !document.querySelector) return;
+  var row = document.querySelector('.draft-row');
+  if (!row || !row.getBoundingClientRect) return;
+  var r = row.getBoundingClientRect();
+  burstAt(r.left + r.width / 2, r.top + r.height / 2,
+    draft ? (draft.kind === 'income' ? '#2e7d4f' : catColor(draft.cat)) : '#2e7d4f');
 }
 
 /* ---------------- events ---------------- */
@@ -1444,37 +1517,56 @@ function handleClick(e){
       goToDay(g, false); break;
     }
     case 'add-cat': {
-      var day = getDay(iso);
-      day.entries.push({ cat: target.getAttribute('data-cat') || 'other', note:'', amount:0 });
-      dayDirty = true;
-      persist(); render();
-      focusAmount('data-entry-amount', day.entries.length - 1);
+      var c = target.getAttribute('data-cat') || 'other';
+      if (!draft || draft.iso !== iso) draft = { kind:'expense', cat:c, amount:'', note:'', iso: iso };
+      else { draft.kind = 'expense'; draft.cat = c; }
+      render();
+      focusAmount('data-draft-amount', 0);
       break;
     }
     case 'add-income': {
-      var day2 = getDay(iso);
-      day2.income.push({ amount:0, note:'' });
-      dayDirty = true;
-      persist(); render();
-      focusAmount('data-income-amount', day2.income.length - 1);
+      if (!draft || draft.iso !== iso) draft = { kind:'income', cat:'income', amount:'', note:'', iso: iso };
+      else draft.kind = 'income';
+      render();
+      focusAmount('data-draft-amount', 0);
       break;
     }
-    case 'del-entry': {
-      getDay(iso).entries.splice(+target.getAttribute('data-idx'), 1);
-      dayDirty = true;
-      persist(); render(); break;
-    }
-    case 'del-income': {
-      getDay(iso).income.splice(+target.getAttribute('data-idx'), 1);
-      dayDirty = true;
-      persist(); render(); break;
-    }
-    case 'save-day':
-      dayDirty = false;
+    case 'close-draft':
+      draft = null;
+      render();
+      break;
+    case 'save-draft': {
+      var amt = draft ? Math.max(0, Math.round(Number(draft.amount) || 0)) : 0;
+      if (typeof document !== 'undefined' && document.querySelector){
+        var amtInp = document.querySelector('input[data-draft-amount="0"]');
+        if (amtInp && amtInp.value !== '') amt = Math.max(0, Math.round(Number(amtInp.value) || 0));
+      }
+      if (!draft || amt <= 0){ showToast(t('enterAmount')); break; }
+      burstDraft();
+      var day3 = getDay(iso);
+      if (draft.kind === 'income') day3.income.push({ amount: amt, note: (draft.note || '').trim() });
+      else day3.entries.push({ cat: draft.cat, note: (draft.note || '').trim(), amount: amt });
+      draft = null;
       persist();
       showToast(t('saved'));
       render();
       break;
+    }
+    case 'del-recent': {
+      var diso = target.getAttribute('data-iso');
+      var didx = +target.getAttribute('data-idx');
+      var dinc = target.getAttribute('data-income') === '1';
+      var dd = state.days[diso];
+      if (dd){
+        if (dinc && Array.isArray(dd.income)) dd.income.splice(didx, 1);
+        else if (Array.isArray(dd.entries)) dd.entries.splice(didx, 1);
+        if ((!dd.entries || !dd.entries.length) && (!dd.income || !dd.income.length)) delete state.days[diso];
+        persist();
+      }
+      showToast(t('deleted'));
+      render();
+      break;
+    }
     case 'edit-name':
       editingName = true;
       nameDraft = (state.profile && state.profile.name) || '';
@@ -1606,7 +1698,7 @@ function handleClick(e){
         resetArmed = false;
         state = defaultState();
         setupDraft = null;
-        dayDirty = false;
+        draft = null;
         editingName = false;
         tourStep = null;
         budgetWhyOpen = false;
@@ -1698,7 +1790,7 @@ function handleChange(e){
     brd.onload = function(){
       var r = importState(String(brd.result || ''));
       showToast(r.ok ? t('importDone') : t('importFail'));
-      if (r.ok){ setupDraft = null; dayDirty = false; goHome(false); }
+      if (r.ok){ setupDraft = null; draft = null; goHome(false); }
     };
     brd.onerror = function(){ showToast(t('importFail')); };
     brd.readAsText(bf);
@@ -1724,8 +1816,6 @@ function updateSuggestChip(){
 function handleInput(e){
   var target = e.target;
   if (!target || !target.getAttribute) return;
-  var iso = view.iso;
-  var day = getDay(iso);
   if (target.id === 'searchInput'){
     searchText = target.value;
     searchOpen = true;
@@ -1755,29 +1845,15 @@ function handleInput(e){
     nameDraft = target.value;
     return;
   }
-  var ea = target.getAttribute('data-entry-amount');
-  if (ea !== null){
-    day.entries[+ea].amount = Math.max(0, Math.round(Number(target.value) || 0));
-    dayDirty = true;
-    persist(); updateTotalsOnly(); return;
+  var da = target.getAttribute('data-draft-amount');
+  if (da !== null){
+    if (draft) draft.amount = target.value;
+    return;
   }
-  var en = target.getAttribute('data-entry-note');
-  if (en !== null){
-    day.entries[+en].note = target.value;
-    dayDirty = true;
-    persist(); return;
-  }
-  var ia = target.getAttribute('data-income-amount');
-  if (ia !== null){
-    day.income[+ia].amount = Math.max(0, Math.round(Number(target.value) || 0));
-    dayDirty = true;
-    persist(); updateTotalsOnly(); return;
-  }
-  var inn = target.getAttribute('data-income-note');
-  if (inn !== null){
-    day.income[+inn].note = target.value;
-    dayDirty = true;
-    persist(); return;
+  var dn = target.getAttribute('data-draft-note');
+  if (dn !== null){
+    if (draft) draft.note = target.value;
+    return;
   }
 }
 
@@ -1845,7 +1921,8 @@ if (typeof module !== 'undefined' && module.exports){
     render: render, init: init, handleClick: handleClick, handleInput: handleInput,
     handleChange: handleChange, handleKeyDown: handleKeyDown, exportBackup: exportBackup,
     profileName: profileName, profilePhoto: profilePhoto,
-    get dayDirty(){ return dayDirty; },
+    get draft(){ return draft; },
+    isJunk: isJunk, purgeJunk: purgeJunk,
     get editingName(){ return editingName; },
     get tourStep(){ return tourStep; },
     setTourStep: function(s){ tourStep = s; },
