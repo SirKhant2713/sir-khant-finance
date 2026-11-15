@@ -346,18 +346,45 @@ table.ledger .note-in{
   display:flex; align-items:center; justify-content:center;
 }
 [data-theme="dark"] .fab{color:#14210f;}
+/* ---------- splash (uabpay-style launch screen, our green palette) ---------- */
+#splash{position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;
+  background:linear-gradient(135deg,#0e2118,#1d4a32 35%,#2e7d4f 60%,#123322);
+  background-size:300% 300%; animation:splashShift 7s ease-in-out infinite alternate;
+  transition:opacity .5s ease, visibility .5s;}
+#splash.done{opacity:0; visibility:hidden;}
+@keyframes splashShift{from{background-position:0% 0%;} to{background-position:100% 100%;}}
+.splash-glow{position:absolute; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle, rgba(247,243,234,.14), transparent 70%); animation:glowPulse 3s ease-in-out infinite alternate;}
+@keyframes glowPulse{from{transform:scale(.9); opacity:.7;} to{transform:scale(1.15); opacity:1;}}
+.splash-inner{position:relative; text-align:center; padding:0 24px;}
+.splash-logo{width:76px; height:76px; margin:0 auto 18px; border-radius:22px; background:#f7f3ea; color:#1d4a32; font-size:34px; font-weight:800; letter-spacing:2px; display:flex; align-items:center; justify-content:center; box-shadow:0 18px 40px rgba(0,0,0,.35); animation:logoIn .8s cubic-bezier(.2,.8,.3,1.2) both;}
+@keyframes logoIn{from{opacity:0; transform:scale(.6) translateY(12px);} to{opacity:1; transform:scale(1) translateY(0);}}
+.splash-name{color:#f7f3ea; font-size:24px; font-weight:800; letter-spacing:1px; animation:nameIn .7s ease .35s both;}
+@keyframes nameIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+.splash-tag{color:rgba(247,243,234,.88); font-size:16px; margin-top:10px; min-height:24px;}
+.splash-tag span{display:inline-block; animation:wordIn .5s ease both; margin-right:.35em;}
+@keyframes wordIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+.splash-skip{position:absolute; bottom:34px; left:0; right:0; text-align:center; color:rgba(247,243,234,.6); font-size:13px; animation:nameIn .7s ease 1s both;}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
+<div id="splash">
+  <div class="splash-glow"></div>
+  <div class="splash-inner">
+    <div class="splash-logo">SK</div>
+    <div class="splash-name">Sir Khant Finance</div>
+    <div class="splash-tag" id="splashTag"></div>
+  </div>
+  <div class="splash-skip" id="splashSkip"></div>
+</div>
 <script>
 /* Sir Khant Finance — PUBLIC version (PWA + Android).
    Local-first: all data stays on the user's phone (localStorage).
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Sir Khant Finance';
-var APP_VERSION = '1.0.14';
+var APP_VERSION = '1.0.15';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -439,6 +466,7 @@ var I18N = {
     backup:'အရန်သိမ်း (Backup)', exportBackup:'Backup ထုတ်မယ်', importBackup:'Backup ပြန်ထည့်မယ်',
     backupSaved:'Backup ဖိုင် သိမ်းပြီးပါပြီ', importDone:'Backup ပြန်ထည့်ပြီးပါပြီ', importFail:'Backup ဖိုင် မမှန်ပါ',
     saveDay:'သိမ်းမယ်', enterAmount:'ငွေပမာဏ ထည့်ပါ', deleted:'ဖျက်ပြီးပါပြီ', amountPh:'ငွေပမာဏ', creditBy:'Developed by Min Khant',
+    splashTag:'ငွေတိုင်းကို နေရာတကျ', splashSkip:'ကျော်ရန် နှိပ်ပါ',
     editNameHint:'နာမည် ရိုက်ထည့်ပါ', photoFail:'ပုံ မရပါ',
     monthTotal:'ပျှမ်းမျှ', monthDays:'{m}လမှာ ရက် {x} ပဲ ရှိပါတယ်',
     paydayMonth:'ယခုလ {m}သည် ရက် {x} တွင် လကုန်ပါသည်။ လစာထုတ်ရက်ကို 1 ကနေ {x} အထိ ထည့်ပါ။',
@@ -482,6 +510,7 @@ var I18N = {
     backup:'Backup', exportBackup:'Export backup', importBackup:'Restore backup',
     backupSaved:'Backup file saved', importDone:'Backup restored', importFail:'Invalid backup',
     saveDay:'Save', enterAmount:'Enter an amount', deleted:'Deleted', amountPh:'Amount', creditBy:'Developed by Min Khant',
+    splashTag:'Every kyat, in its place.', splashSkip:'Tap to skip',
     editNameHint:'Type your name', photoFail:'Could not load photo',
     monthTotal:'Average', monthDays:'{m} has only {x} days',
     paydayMonth:'This month, {m} ends on day {x}. Please enter a payday from 1 to {x}.',
@@ -1913,6 +1942,35 @@ function handleInput(e){
 }
 
 /* ---------------- init ---------------- */
+/* Launch splash, uabpay-style: animated gradient, logo reveal, tagline
+   word by word, tap to skip, auto-dismiss after ~2.8s. The tagline is
+   split on WORDS, never characters — splitting Burmese by character
+   would tear combining marks off their base letters. */
+function showSplash(){
+  try {
+    if (typeof document === 'undefined' || !document.getElementById) return;
+    var sp = document.getElementById('splash');
+    if (!sp) return;
+    var tag = document.getElementById('splashTag');
+    if (tag){
+      var words = t('splashTag').split(' ');
+      tag.innerHTML = words.map(function(w, i){
+        return '<span style="animation-delay:' + (0.7 + i * 0.18) + 's">' + esc(w) + '</span>';
+      }).join('');
+    }
+    var skip = document.getElementById('splashSkip');
+    if (skip) skip.textContent = t('splashSkip');
+    var dismissed = false;
+    function dismiss(){
+      if (dismissed) return;
+      dismissed = true;
+      sp.classList.add('done');
+      if (typeof setTimeout !== 'undefined') setTimeout(function(){ if (sp.parentNode) sp.parentNode.removeChild(sp); }, 600);
+    }
+    if (sp.addEventListener) sp.addEventListener('click', dismiss);
+    if (typeof setTimeout !== 'undefined') setTimeout(dismiss, 2800);
+  } catch (e) {}
+}
 function init(){
   loadState();
   if (!state.setup.done){
@@ -1930,6 +1988,7 @@ function init(){
   }
   setHash(view.name === 'settings' ? '#settings' : view.name === 'home' ? '#home' : '#day=' + view.iso, false);
   render();
+  showSplash();
   if (typeof document !== 'undefined'){
     document.addEventListener('click', handleClick);
     document.addEventListener('input', handleInput);

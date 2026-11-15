@@ -1,6 +1,6 @@
 /* Sir Khant Finance (public) — offline service worker, cache-first.
    Bump CACHE when shipping a new version of the site. */
-var CACHE = 'skf-public-v1.0.14';
+var CACHE = 'skf-public-v1.0.15';
 var ASSETS = [
   './',
   './index.html',
