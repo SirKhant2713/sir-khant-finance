@@ -506,7 +506,7 @@ table.ledger .note-in{
    No accounts, no cloud sync, no personal data baked in.
    Rename the app by changing APP_NAME here and in manifest.json. */
 var APP_NAME = 'Your Wallet';
-var APP_VERSION = '1.0.26';
+var APP_VERSION = '1.0.27';
 var STORE_KEY = 'skf_public_v1';
 var MIN_ISO = '2020-01-01';
 var MAX_ISO = '2035-12-31';
@@ -1552,12 +1552,37 @@ function settingsViewHTML(){
 }
 
 /* ---------------- render + navigation ---------------- */
-/* PC drag-to-scroll for the category chips (v1.0.26): on a desktop there
-   is no touch swipe and the scrollbar is hidden, so the last categories
-   (phone, other) were unreachable — after transport/cigarettes the row
-   just stopped. Mouse-drag scrolls it; a real drag swallows the click
-   that would otherwise fire on release, so dragging never opens a draft. */
-var chipDrag = { on: false, moved: false, x: 0, left: 0 };
+/* PC drag-to-scroll for the category chips (v1.0.26, fixed v1.0.27): on a
+   desktop there is no touch swipe and the scrollbar is hidden, so the
+   last categories (phone, other) were unreachable — after
+   transport/cigarettes the row just stopped. Mouse-drag scrolls it; a
+   real drag swallows the click that would otherwise fire on release, so
+   dragging never opens a draft.
+   NEVER use setPointerCapture here (v1.0.27 regression fix): capturing
+   the pointer retargets the release click onto the row, so the chip
+   under the mouse never receives its tap and no draft opens. The drag
+   instead listens on window while it runs, so clicks keep their target. */
+var chipDrag = { on: false, moved: false, x: 0, left: 0, el: null };
+function chipDragMove(e){
+  if (!chipDrag.on || !chipDrag.el) return;
+  var dx = e.clientX - chipDrag.x;
+  if (!chipDrag.moved && Math.abs(dx) > 6){
+    chipDrag.moved = true;
+    if (chipDrag.el.classList) chipDrag.el.classList.add('dragging');
+  }
+  if (chipDrag.moved) chipDrag.el.scrollLeft = chipDrag.left - dx;
+}
+function chipDragEnd(){
+  if (!chipDrag.on) return;
+  chipDrag.on = false;
+  if (typeof window !== 'undefined' && window.removeEventListener){
+    window.removeEventListener('pointermove', chipDragMove);
+    window.removeEventListener('pointerup', chipDragEnd);
+    window.removeEventListener('pointercancel', chipDragEnd);
+    window.removeEventListener('blur', chipDragEnd);
+  }
+  if (chipDrag.el && chipDrag.el.classList) chipDrag.el.classList.remove('dragging');
+}
 function initChipDrag(){
   var cr = el('chipRow');
   if (!cr || !cr.addEventListener || cr._dragWired) return;
@@ -1565,26 +1590,14 @@ function initChipDrag(){
   cr.addEventListener('pointerdown', function(e){
     if (e.pointerType !== 'mouse' || e.button !== 0) return;
     chipDrag.on = true; chipDrag.moved = false;
-    chipDrag.x = e.clientX; chipDrag.left = cr.scrollLeft;
-    if (cr.setPointerCapture){ try { cr.setPointerCapture(e.pointerId); } catch (err) {} }
-  });
-  cr.addEventListener('pointermove', function(e){
-    if (!chipDrag.on) return;
-    var dx = e.clientX - chipDrag.x;
-    if (!chipDrag.moved && Math.abs(dx) > 6){
-      chipDrag.moved = true;
-      if (cr.classList) cr.classList.add('dragging');
+    chipDrag.x = e.clientX; chipDrag.left = cr.scrollLeft; chipDrag.el = cr;
+    if (typeof window !== 'undefined' && window.addEventListener){
+      window.addEventListener('pointermove', chipDragMove);
+      window.addEventListener('pointerup', chipDragEnd);
+      window.addEventListener('pointercancel', chipDragEnd);
+      window.addEventListener('blur', chipDragEnd);
     }
-    if (chipDrag.moved) cr.scrollLeft = chipDrag.left - dx;
   });
-  function chipDragEnd(){
-    if (!chipDrag.on) return;
-    chipDrag.on = false;
-    if (cr.classList) cr.classList.remove('dragging');
-  }
-  cr.addEventListener('pointerup', chipDragEnd);
-  cr.addEventListener('pointercancel', chipDragEnd);
-  cr.addEventListener('pointerleave', chipDragEnd);
   cr.addEventListener('click', function(e){
     if (chipDrag.moved){ chipDrag.moved = false; e.stopPropagation(); e.preventDefault(); }
   }, true);
